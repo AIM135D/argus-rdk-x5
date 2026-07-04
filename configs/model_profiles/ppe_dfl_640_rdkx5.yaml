@@ -1,0 +1,28 @@
+name: argus_ppe_dfl_640_rdkx5
+runtime: rdk_x5_bpu
+input:
+  shape: [1, 3, 640, 640]
+  format: nv12
+  layout: nhwc_runtime
+classes:
+  - person
+  - helmet
+  - reflective_vest
+postprocess:
+  strides: [8, 16, 32]
+  reg_max: 16
+  output_count: 6
+  classification_outputs: [0, 2, 4]
+  regression_outputs: [1, 3, 5]
+  steps:
+    - sigmoid
+    - dfl_softmax
+    - dist2bbox
+    - class_aware_nms
+expected_output_shapes:
+  - [1, 80, 80, 3]
+  - [1, 80, 80, 64]
+  - [1, 40, 40, 3]
+  - [1, 40, 40, 64]
+  - [1, 20, 20, 3]
+  - [1, 20, 20, 64]

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "frame_width": 640,
+  "frame_height": 360,
+  "mode": "grid",
+  "grid": [
+    [
+      {"u": 0, "v": 0, "pan": 45, "tilt": 60},
+      {"u": 320, "v": 0, "pan": 90, "tilt": 60},
+      {"u": 639, "v": 0, "pan": 135, "tilt": 60}
+    ],
+    [
+      {"u": 0, "v": 180, "pan": 45, "tilt": 82},
+      {"u": 320, "v": 180, "pan": 90, "tilt": 82},
+      {"u": 639, "v": 180, "pan": 135, "tilt": 82}
+    ],
+    [
+      {"u": 0, "v": 359, "pan": 45, "tilt": 105},
+      {"u": 320, "v": 359, "pan": 90, "tilt": 105},
+      {"u": 639, "v": 359, "pan": 135, "tilt": 105}
+    ]
+  ],
+  "zone_overrides": {},
+  "limits": {
+    "pan_min": 10,
+    "pan_max": 170,
+    "tilt_min": 35,
+    "tilt_max": 135
+  },
+  "offset": {"pan": 0, "tilt": 0}
+}

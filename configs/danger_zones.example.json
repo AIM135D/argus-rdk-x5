@@ -1,0 +1,22 @@
+{
+  "danger_zones": [
+    {
+      "id": 1,
+      "name": "机械作业区",
+      "zone": [300, 40, 520, 350],
+      "risk_level": "high",
+      "enabled": true,
+      "require_helmet": true,
+      "require_vest": true
+    },
+    {
+      "id": 2,
+      "name": "通道观察区",
+      "zone": [50, 100, 280, 350],
+      "risk_level": "medium",
+      "enabled": true,
+      "require_helmet": true,
+      "require_vest": false
+    }
+  ]
+}

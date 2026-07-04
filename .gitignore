@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+configs/runtime.yaml
+configs/danger_zones.runtime.json
+configs/servo_calibration.runtime.json
+*.pem
+*.key
+*.p12
+*.token
+
+# Runtime output
+logs/
+log/
+cache/
+tmp/
+captures/
+output/
+*.log
+
+# Models, data, media, and archives
+*.pt
+*.pth
+*.onnx
+*.bin
+*.engine
+*.zip
+*.tar
+*.tar.gz
+datasets/
+dataset/
+data/
+calibration_images/
+videos/
+video/
+screenshots/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.jpg
+*.jpeg
+*.png
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

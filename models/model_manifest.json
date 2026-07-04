@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "selected_profile": "ppe_dfl_640_rdkx5",
+  "release_policy": {
+    "publish_models": false,
+    "reason": "Embedded training/build paths and training-data redistribution rights could not be cleared."
+  },
+  "interface": {
+    "input_shape": [1, 3, 640, 640],
+    "runtime_input_format": "nv12",
+    "classes": ["person", "helmet", "reflective_vest"],
+    "strides": [8, 16, 32],
+    "reg_max": 16,
+    "output_count": 6,
+    "classification_outputs": [0, 2, 4],
+    "regression_outputs": [1, 3, 5]
+  },
+  "artifacts": [
+    {
+      "discovered_name": "best.pt",
+      "normalized_name": "argus_ppe_dfl_640.pt",
+      "size_bytes": 6261098,
+      "sha256": "9586e5bd787d04d37eded2a0bfb061b47aaca33b8e5c46c788d7249dfede07f9",
+      "selected": true,
+      "published": false
+    },
+    {
+      "discovered_name": "best.onnx",
+      "normalized_name": "argus_ppe_dfl_640.onnx",
+      "size_bytes": 12066888,
+      "sha256": "f2af2bf9ab9916e672df1269f32729518bf35933c2fad52c0e4275a83c7d7e3e",
+      "selected": true,
+      "published": false
+    },
+    {
+      "discovered_name": "best_bayese_640x640_nv12.bin",
+      "normalized_name": "argus_ppe_dfl_640_rdkx5.bin",
+      "size_bytes": 3805882,
+      "sha256": "e62b9e8570d9270374e2b7f6240581e91f54e32a7078690fbc8417bc9c929b4c",
+      "selected": true,
+      "published": false
+    }
+  ]
+}

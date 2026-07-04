@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ARGUS Online · Active Risk-Guided Unified Safeguard</title>
+<script src="/static/echarts.min.js"></script>
+<style>
+
+    * { box-sizing: border-box; }
+    :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --card-soft: #f8fafc;
+        --line: #e5e7eb;
+        --text: #172033;
+        --muted: #667085;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --green: #16a34a;
+        --green-soft: #ecfdf3;
+        --orange: #f97316;
+        --orange-soft: #fff7ed;
+        --red: #dc2626;
+        --red-soft: #fef2f2;
+        --purple: #7c3aed;
+        --purple-soft: #f5f3ff;
+        --shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+        --radius: 18px;
+    }
+    body {
+        margin: 0;
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        min-height: 100vh;
+    }
+    .page { max-width: 1680px; margin: 0 auto; padding: 18px; }
+    .topbar {
+        display: flex; align-items: center; justify-content: space-between; gap: 18px;
+        margin-bottom: 16px; padding: 18px 20px; border-radius: 24px;
+        background: linear-gradient(120deg, #ffffff 0%, #f7fbff 55%, #fff7ed 100%);
+        border: 1px solid var(--line); box-shadow: var(--shadow);
+    }
+    .title { font-size: 31px; font-weight: 950; letter-spacing: 2px; line-height: 1; color: var(--text); }
+    .subtitle { color: var(--muted); font-size: 13px; margin-top: 7px; line-height: 1.45; }
+    .top-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    .top-tag {
+        padding: 9px 13px; border-radius: 999px; font-size: 13px; white-space: nowrap;
+        background: rgba(255,255,255,0.82); border: 1px solid var(--line); color: var(--muted);
+    }
+    .top-tag strong { color: var(--text); margin-right: 5px; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+    .summary-card {
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 14px 15px; box-shadow: var(--shadow); min-height: 96px; border-top: 4px solid #2563eb;
+    }
+    .summary-card:nth-child(3), .summary-card:nth-child(4) { border-top-color: #f97316; }
+    .summary-card:nth-child(5), .summary-card:nth-child(6) { border-top-color: #dc2626; }
+    .summary-label { font-size: 12px; color: var(--muted); margin-bottom: 9px; }
+    .summary-value { font-size: 23px; font-weight: 900; line-height: 1.05; word-break: break-word; color: var(--text); }
+    .summary-tip { margin-top: 9px; font-size: 11px; color: #8a94a6; }
+
+    .main-grid { display: grid; grid-template-columns: 1.65fr 1fr; gap: 16px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 17px; border-bottom:1px solid var(--line); }
+    .card-title { font-size: 17px; font-weight: 900; color: var(--text); }
+    .card-desc { color: var(--muted); font-size: 12px; }
+    .card-body { padding: 16px 17px 18px; }
+
+    .status-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:16px; }
+    .status-item { padding:12px; border-radius:16px; border:1px solid var(--line); background:var(--card-soft); }
+    .status-label { font-size:12px; color:var(--muted); margin-bottom:7px; }
+    .status-value { font-size:17px; font-weight:900; color:var(--text); word-break:break-word; }
+
+    .risk-box { margin-top:13px; border-radius:18px; padding:14px 15px; background:linear-gradient(120deg,#eff6ff,#f5f3ff); border:1px solid #dbeafe; }
+    .risk-title { font-weight:900; margin-bottom:8px; }
+    .risk-text { color:#344054; line-height:1.65; font-size:14px; }
+
+    .zone-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 0 12px; }
+    .zone-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    button { border:none; cursor:pointer; padding:10px 14px; border-radius:12px; color:white; font-size:13px; font-weight:800; background:linear-gradient(135deg,#2563eb,#1d4ed8); box-shadow:0 8px 18px rgba(37,99,235,0.18); }
+    button.secondary { background:linear-gradient(135deg,#64748b,#475569); box-shadow:none; }
+    button.warn { background:linear-gradient(135deg,#f97316,#ea580c); box-shadow:0 8px 18px rgba(249,115,22,0.18); }
+    .zone-list { display:grid; gap:12px; }
+    .zone-item { padding:14px; border-radius:18px; background:var(--card-soft); border:1px solid var(--line); }
+    .zone-item.active { background:var(--red-soft); border-color:#fecaca; }
+    .zone-row { display:grid; grid-template-columns:1.15fr 0.7fr 1.2fr 1.3fr auto; gap:10px; align-items:center; }
+    .zone-name { font-size:15px; font-weight:900; color:var(--text); }
+    .zone-badge { display:inline-flex; align-items:center; justify-content:center; min-width:72px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900; border:1px solid var(--line); background:#eef2ff; color:#4f46e5; }
+    .zone-badge.high { color:var(--red); background:var(--red-soft); border-color:#fecaca; }
+    .zone-badge.medium { color:var(--orange); background:var(--orange-soft); border-color:#fed7aa; }
+    .zone-badge.low { color:var(--accent); background:var(--accent-soft); border-color:#bfdbfe; }
+    .zone-sub { color:var(--muted); font-size:12px; line-height:1.55; }
+    .zone-tools { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+    .zone-tools button { padding:8px 12px; border-radius:10px; font-size:12px; }
+    .editor { margin-top:14px; display:none; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .editor.show { display:grid; }
+    .field { display:flex; flex-direction:column; gap:8px; }
+    .field label { font-size:12px; color:var(--muted); }
+    .field input, .field select, .field textarea { width:100%; border:1px solid var(--line); background:#ffffff; color:var(--text); border-radius:12px; padding:10px 12px; font-size:13px; outline:none; }
+    .field textarea { min-height:78px; resize:vertical; font-family:inherit; }
+    .editor-actions { grid-column:1/-1; display:flex; gap:10px; justify-content:flex-end; }
+
+    .chart-box { height:300px; }
+    .ai-panel { border-radius:18px; background:var(--card-soft); border:1px solid var(--line); padding:16px; }
+    .ai-top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    .ai-status { display:inline-flex; align-items:center; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:900; background:var(--orange-soft); color:var(--orange); border:1px solid #fed7aa; }
+    .ai-meta { color:var(--muted); font-size:12px; }
+    .ai-text { min-height:120px; line-height:1.9; font-size:15px; color:#166534; padding:14px 16px; border-radius:16px; background:var(--green-soft); border:1px solid #bbf7d0; white-space:pre-wrap; }
+    .ai-source { margin-top:12px; color:#64748b; font-size:12px; line-height:1.7; white-space:pre-wrap; }
+    .log-list { display:grid; gap:12px; max-height:520px; overflow:auto; padding-right:4px; }
+    .log-item { border-radius:18px; background:var(--card-soft); border:1px solid var(--line); overflow:hidden; }
+    .log-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); }
+    .log-type { font-size:12px; font-weight:900; padding:6px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent); }
+    .log-time { font-size:12px; color:var(--muted); }
+    .log-body { padding:12px 14px 14px; }
+    .log-message { line-height:1.6; color:#344054; font-size:14px; margin-bottom:10px; }
+    .log-extra, .log-ai-status { color:#64748b; font-size:12px; line-height:1.6; white-space:pre-wrap; }
+    .log-image { margin-top:12px; width:100%; border-radius:14px; border:1px solid var(--line); display:block; }
+
+    .video-wrap { position:relative; margin-bottom:16px; border-radius:18px; overflow:hidden; border:1px solid var(--line); background:#111827; box-shadow:var(--shadow); }
+    #videoContainer { position:relative; width:100%; aspect-ratio:16/9; background:#0f172a; overflow:hidden; }
+    #videoContainer::before { content:""; position:absolute; inset:0; background:linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.05) 75%), linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.05) 75%); background-position:0 0,16px 16px; background-size:32px 32px; opacity:.18; pointer-events:none; }
+    #videoFrame { display:block; width:100%; height:100%; object-fit:contain; background:#0f172a; user-select:none; -webkit-user-drag:none; position:relative; z-index:1; }
+    #zoneCanvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:auto; z-index:2; }
+    #zoneCanvas.selecting { cursor:crosshair; }
+    .video-overlay { position:absolute; top:12px; left:12px; right:12px; z-index:3; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+    .badge { display:inline-flex; align-items:center; gap:10px; padding:8px 12px; border-radius:999px; font-size:13px; color:#172033; background:rgba(255,255,255,.86); border:1px solid rgba(229,231,235,.9); box-shadow:0 8px 18px rgba(15,23,42,.08); }
+    .dot { width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.16); flex-shrink:0; }
+    .risk-pill { padding:8px 14px; border-radius:999px; font-size:13px; font-weight:900; background:rgba(255,255,255,.86); border:1px solid rgba(229,231,235,.9); box-shadow:0 8px 18px rgba(15,23,42,.08); }
+    .risk-safe { color:var(--green); }
+    .risk-alert { color:var(--orange); }
+    .risk-critical { color:var(--red); }
+    .select-tip { margin-top:10px; font-size:12px; color:var(--accent); }
+    .safe { color:var(--green); } .alert { color:var(--orange); } .critical { color:var(--red); }
+
+    @media (max-width:1280px) { .main-grid{grid-template-columns:1fr;} .summary-grid{grid-template-columns:repeat(3,1fr);} }
+    @media (max-width:820px) { .summary-grid{grid-template-columns:1fr;} .status-grid{grid-template-columns:1fr;} .zone-row{grid-template-columns:1fr;} .editor{grid-template-columns:1fr;} .topbar{flex-direction:column; align-items:flex-start;} }
+
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="topbar">
+        <div>
+            <div class="title">ARGUS</div>
+            <div class="subtitle">Active Risk-Guided Unified Safeguard · Edge Vision / Risk Arbitration / Directional Intervention</div>
+        </div>
+        <div class="top-tags">
+            <div class="top-tag"><strong>Link</strong><span id="systemHealth">初始化</span></div>
+            <div class="top-tag"><strong>Top zone</strong><span id="topRiskZoneName">-</span></div>
+            <div class="top-tag"><strong>Clients</strong><span id="onlineCount">0</span></div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">FPS</div>
+            <div class="summary-value" id="fpsValue">--</div>
+            <div class="summary-tip">实时帧率</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">推理耗时</div>
+            <div class="summary-value" id="inferValue">--</div>
+            <div class="summary-tip">单帧推理时延 / ms</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">危险人数</div>
+            <div class="summary-value" id="dangerCountValue">--</div>
+            <div class="summary-tip">当前危险人数</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">PPE 违规人数</div>
+            <div class="summary-value" id="ppeViolationValue">--</div>
+            <div class="summary-tip">当前 PPE 不合规人数</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">未戴安全帽</div>
+            <div class="summary-value" id="missingHelmetValue">--</div>
+            <div class="summary-tip">当前缺帽人数</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">未穿反光衣</div>
+            <div class="summary-value" id="missingVestValue">--</div>
+            <div class="summary-tip">当前缺反光衣人数</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">实时视觉</div>
+                    <div class="card-desc">Live stream · zone selection · risk overlay</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="video-wrap">
+                    <div class="video-overlay">
+                        <div class="badge" id="statusText">
+                            <span class="dot" id="statusDot"></span>
+                            <span id="statusTextInner">连接中...</span>
+                        </div>
+                        <div class="risk-pill risk-safe" id="riskBadge">SAFE · Normal</div>
+                    </div>
+
+                    <div id="videoContainer">
+                        <img id="videoFrame" alt="实时视频流" />
+                        <canvas id="zoneCanvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-item"><div class="status-label">当前人数</div><div class="status-value" id="currentPersonCount">--</div></div>
+                    <div class="status-item"><div class="status-label">危险人数</div><div class="status-value" id="dangerPersonCount">--</div></div>
+                    <div class="status-item"><div class="status-label">累计告警</div><div class="status-value" id="alertTotalCount">--</div></div>
+                    <div class="status-item"><div class="status-label">最近告警</div><div class="status-value" id="lastAlertTime">--</div></div>
+                    <div class="status-item"><div class="status-label">BPU 占用率</div><div class="status-value" id="metricBpuUsage">--</div></div>
+                    <div class="status-item"><div class="status-label">CPU 占用率</div><div class="status-value" id="metricCpuUsage">--</div></div>
+                    <div class="status-item"><div class="status-label">内存占用率</div><div class="status-value" id="metricMemUsage">--</div></div>
+                    <div class="status-item"><div class="status-label">功耗</div><div class="status-value" id="metricPower">--</div></div>
+                    <div class="status-item"><div class="status-label">CPU 温度</div><div class="status-value" id="metricCpuTemp">--</div></div>
+                    <div class="status-item"><div class="status-label">BPU 温度</div><div class="status-value" id="metricBpuTemp">--</div></div>
+                    <div class="status-item"><div class="status-label">连接状态</div><div class="status-value" id="statusTextDetail">初始化</div></div>
+                    <div class="status-item"><div class="status-label">主风险区</div><div class="status-value" id="placeholderTopRiskZone">-</div></div>
+                </div>
+
+                <div class="risk-box">
+                    <div class="risk-title" id="riskTitle">状态分析</div>
+                    <div class="risk-text" id="riskText">等待状态流数据...</div>
+                </div>
+
+                <div class="zone-head">
+                    <div>
+                        <div class="card-title" style="font-size: 17px;">危险区域配置</div>
+                        <div class="card-desc">Draw or edit zones directly on the video canvas</div>
+                    </div>
+                    <div class="zone-actions">
+                        <button type="button" onclick="addZone()">Add Zone</button>
+                        <button type="button" class="secondary" onclick="reloadZones()">Reload</button>
+                        <button type="button" class="warn" onclick="saveAllZones()">Save All</button>
+                    </div>
+                </div>
+
+                <div id="zoneList" class="zone-list"></div>
+            </div>
+        </div>
+
+        <div style="display: grid; gap: 18px;">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">性能曲线</div>
+                        <div class="card-desc">FPS / BPU / CPU / MEM / 温度 / 功耗</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="perfChart" class="chart-box"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">LLM 安全建议</div>
+                        <div class="card-desc">最新一次自动抓拍的语义分析与现场处置建议</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="ai-panel">
+                        <div class="ai-top">
+                            <div class="ai-status" id="aiPanelStatus">等待触发</div>
+                            <div class="ai-meta" id="aiPanelMeta">尚无可展示的 LLM 分析结果</div>
+                        </div>
+                        <div class="ai-text" id="aiPanelText">触发 auto_capture 后，这里会显示面向工作人员和安全员的建议。</div>
+                        <div class="ai-source" id="aiPanelSource">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">事件日志</div>
+                        <div class="card-desc">告警、抓拍、区域变更等事件记录</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="logList" class="log-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const systemHealthEl = document.getElementById("systemHealth");
+    const onlineCountEl = document.getElementById("onlineCount");
+    const topRiskZoneNameEl = document.getElementById("topRiskZoneName");
+
+    const fpsValueEl = document.getElementById("fpsValue");
+    const inferValueEl = document.getElementById("inferValue");
+    const dangerCountValueEl = document.getElementById("dangerCountValue");
+    const ppeViolationValueEl = document.getElementById("ppeViolationValue");
+    const missingHelmetValueEl = document.getElementById("missingHelmetValue");
+    const missingVestValueEl = document.getElementById("missingVestValue");
+
+    const currentPersonCountEl = document.getElementById("currentPersonCount");
+    const dangerPersonCountEl = document.getElementById("dangerPersonCount");
+    const alertTotalCountEl = document.getElementById("alertTotalCount");
+    const lastAlertTimeEl = document.getElementById("lastAlertTime");
+    const statusTextInner = document.getElementById("statusTextInner");
+    const img = document.getElementById("videoFrame");
+    const videoContainer = document.getElementById("videoContainer");
+    const zoneCanvas = document.getElementById("zoneCanvas");
+    const zoneCtx = zoneCanvas ? zoneCanvas.getContext("2d") : null;
+    const statusDot = document.getElementById("statusDot");
+    const riskBadge = document.getElementById("riskBadge");
+    const statusTextDetailEl = document.getElementById("statusTextDetail");
+    const placeholderTopRiskZoneEl = document.getElementById("placeholderTopRiskZone");
+
+    const metricBpuUsageEl = document.getElementById("metricBpuUsage");
+    const metricCpuUsageEl = document.getElementById("metricCpuUsage");
+    const metricMemUsageEl = document.getElementById("metricMemUsage");
+    const metricPowerEl = document.getElementById("metricPower");
+    const metricCpuTempEl = document.getElementById("metricCpuTemp");
+    const metricBpuTempEl = document.getElementById("metricBpuTemp");
+
+    const riskTitleEl = document.getElementById("riskTitle");
+    const riskTextEl = document.getElementById("riskText");
+    const zoneListEl = document.getElementById("zoneList");
+    const logList = document.getElementById("logList");
+
+    const aiPanelStatusEl = document.getElementById("aiPanelStatus");
+    const aiPanelMetaEl = document.getElementById("aiPanelMeta");
+    const aiPanelTextEl = document.getElementById("aiPanelText");
+    const aiPanelSourceEl = document.getElementById("aiPanelSource");
+
+    let metaWs = null;
+    let latestMeta = {};
+    let dangerZones = [];
+    let serverDangerZones = [];
+    let pendingFrameUrl = null;
+    let renderingFrame = false;
+    let currentObjectUrl = null;
+    let frameWs = null;
+
+    let selectingZoneId = null;
+    let tempZone = null;
+    let isDragging = false;
+    let dragStart = null;
+
+    const STREAM_WIDTH = 640;
+    const STREAM_HEIGHT = 360;
+
+    const perfChart = echarts.init(document.getElementById("perfChart"));
+    const perfHistory = { time: [], fps: [], bpu: [], cpu: [], mem: [], cpuTemp: [], power: [] };
+
+    function pushData(arr, value, maxLen = 30) {
+        arr.push(value);
+        if (arr.length > maxLen) arr.shift();
+    }
+
+    function fmtValue(v, suffix = "") {
+        if (v === null || v === undefined || Number.isNaN(v)) return "--";
+        return `${v}${suffix}`;
+    }
+
+    function escapeHtml(text) {
+        return String(text ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function updatePerfChart() {
+        perfChart.setOption({
+            backgroundColor: "transparent",
+            tooltip: { trigger: "axis" },
+            legend: {
+                top: 0,
+                textStyle: { color: "#cbd5e1" },
+                data: ["FPS", "BPU%", "CPU%", "MEM%", "CPU温度", "功耗W"]
+            },
+            grid: { left: 50, right: 30, top: 40, bottom: 35 },
+            xAxis: {
+                type: "category",
+                data: perfHistory.time,
+                boundaryGap: false,
+                axisLine: { lineStyle: { color: "#475569" } },
+                axisLabel: { color: "#94a3b8" }
+            },
+            yAxis: [
+                {
+                    type: "value",
+                    name: "性能/占用",
+                    axisLine: { show: false },
+                    splitLine: { lineStyle: { color: "rgba(148,163,184,0.12)" } },
+                    axisLabel: { color: "#94a3b8" }
+                },
+                {
+                    type: "value",
+                    name: "温度/功耗",
+                    axisLine: { show: false },
+                    splitLine: { show: false },
+                    axisLabel: { color: "#94a3b8" }
+                }
+            ],
+            series: [
+                { name: "FPS", type: "line", smooth: true, data: perfHistory.fps, yAxisIndex: 0 },
+                { name: "BPU%", type: "line", smooth: true, data: perfHistory.bpu, yAxisIndex: 0 },
+                { name: "CPU%", type: "line", smooth: true, data: perfHistory.cpu, yAxisIndex: 0 },
+                { name: "MEM%", type: "line", smooth: true, data: perfHistory.mem, yAxisIndex: 0 },
+                { name: "CPU温度", type: "line", smooth: true, data: perfHistory.cpuTemp, yAxisIndex: 1 },
+                { name: "功耗W", type: "line", smooth: true, data: perfHistory.power, yAxisIndex: 1 }
+            ]
+        });
+    }
+
+    function setConnectionState(text, color, shadowColor = color) {
+        if (statusTextInner) statusTextInner.textContent = text;
+        if (statusTextDetailEl) statusTextDetailEl.textContent = text;
+        if (statusDot) {
+            statusDot.style.background = color;
+            statusDot.style.boxShadow = `0 0 0 4px ${shadowColor}`;
+        }
+    }
+
+    function setRiskBadge(data) {
+        if (!riskBadge) return;
+        const activeCount = Array.isArray(data?.zone_stats) ? data.zone_stats.filter(z => z && z.active).length : 0;
+        riskBadge.classList.remove("risk-safe", "risk-alert", "risk-critical");
+        if (!data?.danger) {
+            riskBadge.classList.add("risk-safe");
+            riskBadge.textContent = "SAFE · 监控正常";
+            return;
+        }
+        if (activeCount > 1) {
+            riskBadge.classList.add("risk-critical");
+            riskBadge.textContent = `CRITICAL · ${activeCount}个区域告警`;
+            return;
+        }
+        riskBadge.classList.add("risk-alert");
+        riskBadge.textContent = `ALERT · ${data.top_risk_zone_name || "风险区域"}`;
+    }
+
+    function syncCanvasSize() {
+        if (!zoneCanvas || !videoContainer) return;
+        const rect = videoContainer.getBoundingClientRect();
+        zoneCanvas.width = Math.max(1, Math.round(rect.width));
+        zoneCanvas.height = Math.max(1, Math.round(rect.height));
+    }
+
+    function drawSingleZone(zone, color, fillColor, lineWidth = 2) {
+        if (!zoneCtx || !Array.isArray(zone) || zone.length !== 4 || !videoContainer) return;
+        const rect = videoContainer.getBoundingClientRect();
+        const sx = rect.width / STREAM_WIDTH;
+        const sy = rect.height / STREAM_HEIGHT;
+        const [x1, y1, x2, y2] = zone;
+        const rx = x1 * sx;
+        const ry = y1 * sy;
+        const rw = (x2 - x1) * sx;
+        const rh = (y2 - y1) * sy;
+        zoneCtx.save();
+        zoneCtx.fillStyle = fillColor;
+        zoneCtx.strokeStyle = color;
+        zoneCtx.lineWidth = lineWidth;
+        zoneCtx.fillRect(rx, ry, rw, rh);
+        zoneCtx.strokeRect(rx, ry, rw, rh);
+        zoneCtx.restore();
+    }
+
+    function drawZoneOverlay() {
+        if (!zoneCanvas || !zoneCtx) return;
+        syncCanvasSize();
+        zoneCtx.clearRect(0, 0, zoneCanvas.width, zoneCanvas.height);
+
+        // IMPORTANT:
+        // Do NOT redraw normal danger zones here.
+        // They are already drawn inside backend video frames.
+        // Frontend canvas is now only for temporary selection box.
+        if (Array.isArray(tempZone) && tempZone.length === 4) {
+            drawSingleZone(tempZone, "rgba(34,197,94,0.98)", "rgba(34,197,94,0.16)", 3);
+        }
+    }
+
+    function canvasPointToStream(clientX, clientY) {
+        if (!videoContainer || !zoneCanvas) return [0, 0];
+
+        const rect = videoContainer.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        const sx = STREAM_WIDTH / Math.max(rect.width, 1);
+        const sy = STREAM_HEIGHT / Math.max(rect.height, 1);
+
+        const px = Math.max(0, Math.min(STREAM_WIDTH - 1, Math.round(x * sx)));
+        const py = Math.max(0, Math.min(STREAM_HEIGHT - 1, Math.round(y * sy)));
+
+        return [px, py];
+    }
+
+    function normalizeZonesInput(zones) {
+        if (!Array.isArray(zones)) return [];
+        return zones.map((z, idx) => ({
+            id: Number(z.id || idx + 1),
+            name: String(z.name || `危险区${idx + 1}`),
+            zone: Array.isArray(z.zone) ? z.zone.map(v => Number(v || 0)) : [100, 100, 500, 400],
+            risk_level: ["high", "medium", "low"].includes(String(z.risk_level || "").toLowerCase())
+                ? String(z.risk_level).toLowerCase()
+                : "high",
+            enabled: !!z.enabled,
+            require_helmet: !!z.require_helmet,
+            require_vest: !!z.require_vest
+        }));
+    }
+
+    function cloneZones(zones) {
+        return normalizeZonesInput(zones).map(z => ({
+            ...z,
+            zone: Array.isArray(z.zone) ? z.zone.slice() : [100, 100, 500, 400],
+        }));
+    }
+
+    function zoneSnapshot(zone) {
+        if (!zone || typeof zone !== "object") return null;
+        return {
+            id: Number(zone.id || 0),
+            name: String(zone.name || ""),
+            zone: Array.isArray(zone.zone) ? zone.zone.map(v => Number(v || 0)) : [],
+            risk_level: String(zone.risk_level || "high").toLowerCase(),
+            enabled: !!zone.enabled,
+            require_helmet: !!zone.require_helmet,
+            require_vest: !!zone.require_vest,
+        };
+    }
+
+    function hasLocalZoneDraft() {
+        if (!Array.isArray(dangerZones) || !Array.isArray(serverDangerZones)) return false;
+        if (dangerZones.length !== serverDangerZones.length) return true;
+
+        const serverMap = {};
+        serverDangerZones.forEach(z => {
+            serverMap[String(z.id)] = z;
+        });
+
+        return dangerZones.some(z => {
+            const serverZone = serverMap[String(z.id)];
+            return JSON.stringify(zoneSnapshot(z)) !== JSON.stringify(zoneSnapshot(serverZone));
+        });
+    }
+
+    function shouldFreezeZoneSync() {
+        if (selectingZoneId !== null || isDragging) return true;
+        if (hasLocalZoneDraft()) return true;
+        if (zoneListEl && zoneListEl.contains(document.activeElement)) return true;
+        return !!document.querySelector(".editor.show");
+    }
+
+    function applyServerZones(zones, force = false) {
+        serverDangerZones = cloneZones(zones || []);
+        if (force || !dangerZones.length || !shouldFreezeZoneSync()) {
+            dangerZones = cloneZones(serverDangerZones);
+            renderZones();
+        }
+    }
+
+    async function reloadZones() {
+        try {
+            const res = await fetch("/api/danger_zones");
+            if (!res.ok) return;
+            const data = await res.json();
+            applyServerZones(data.danger_zones || [], true);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function addZone() {
+        let nextId = 1;
+        if (dangerZones.length > 0) {
+            nextId = Math.max(...dangerZones.map(z => Number(z.id || 0))) + 1;
+        }
+        dangerZones.push({
+            id: nextId,
+            name: `危险区${nextId}`,
+            zone: [100, 100, 500, 400],
+            risk_level: "high",
+            enabled: true,
+            require_helmet: false,
+            require_vest: false
+        });
+        renderZones();
+    }
+
+    function deleteZone(zoneId) {
+        dangerZones = dangerZones.filter(z => Number(z.id) !== Number(zoneId));
+        if (dangerZones.length === 0) addZone();
+        renderZones();
+    }
+
+    function toggleZone(zoneId) {
+        dangerZones = dangerZones.map(z => {
+            if (Number(z.id) === Number(zoneId)) z.enabled = !z.enabled;
+            return z;
+        });
+        renderZones();
+    }
+
+    function toggleEditor(zoneId) {
+        const editor = document.getElementById(`editor-${zoneId}`);
+        if (editor) editor.classList.toggle("show");
+    }
+
+    function updateZoneField(zoneId, field, value) {
+        dangerZones = dangerZones.map(z => {
+            if (Number(z.id) === Number(zoneId)) {
+                if (field === "id") z.id = Number(value || 0);
+                else if (field === "enabled") z.enabled = !!value;
+                else if (field === "name") z.name = String(value || "");
+                else if (field === "risk_level") z.risk_level = String(value || "high");
+                else if (field === "require_helmet") z.require_helmet = !!value;
+                else if (field === "require_vest") z.require_vest = !!value;
+                else if (field === "zone") {
+                    const nums = String(value || "")
+                        .split(",")
+                        .map(v => Number(String(v).trim()))
+                        .filter(v => !Number.isNaN(v));
+                    if (nums.length === 4) z.zone = nums;
+                }
+            }
+            return z;
+        });
+    }
+
+    function startZoneSelect(zoneId) {
+        selectingZoneId = Number(zoneId);
+        tempZone = null;
+        isDragging = false;
+        dragStart = null;
+        if (zoneCanvas) zoneCanvas.classList.add("selecting");
+        setConnectionState(`Select zone ${zoneId}`, "#38bdf8", "rgba(56, 189, 248, 0.22)");
+        drawZoneOverlay();
+    }
+
+    function cancelZoneSelect(resetHint = true) {
+        selectingZoneId = null;
+        tempZone = null;
+        isDragging = false;
+        dragStart = null;
+        if (zoneCanvas) zoneCanvas.classList.remove("selecting");
+        drawZoneOverlay();
+        if (resetHint) {
+            setConnectionState("视频流已连接", "#22c55e", "rgba(34, 197, 94, 0.20)");
+        }
+    }
+
+    function renderZones() {
+        const zoneStats = Array.isArray(latestMeta.zone_stats) ? latestMeta.zone_stats : [];
+        const statMap = {};
+        zoneStats.forEach(item => statMap[String(item.id)] = item);
+
+        if (!dangerZones.length) {
+            zoneListEl.innerHTML = `<div class="empty">暂无危险区域，请点击“新增区域”。</div>`;
+            return;
+        }
+
+        zoneListEl.innerHTML = dangerZones.map(zone => {
+            const stat = statMap[String(zone.id)] || {};
+            const active = !!stat.active;
+
+            return `
+                <div class="zone-item ${active ? "active" : ""}">
+                    <div class="zone-row">
+                        <div>
+                            <div class="zone-name">${escapeHtml(zone.name)}</div>
+                            <div class="zone-sub">
+                                坐标：${escapeHtml((zone.zone || []).join(", "))}<br>
+                                当前危险人数：${escapeHtml(stat.danger_person_count ?? 0)} /
+                                PPE违规：${escapeHtml(stat.violation_person_count ?? 0)} /
+                                缺帽：${escapeHtml(stat.missing_helmet_count ?? 0)} /
+                                缺衣：${escapeHtml(stat.missing_vest_count ?? 0)}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="zone-badge ${escapeHtml(zone.risk_level)}">${escapeHtml(String(zone.risk_level || "high").toUpperCase())}</span>
+                        </div>
+                        <div class="zone-sub">
+                            启用：${zone.enabled ? "true" : "false"}<br>
+                            安全帽：${zone.require_helmet ? "true" : "false"}<br>
+                            反光衣：${zone.require_vest ? "true" : "false"}
+                        </div>
+                        <div class="zone-sub">
+                            活动：${active ? "true" : "false"}<br>
+                            危险持续：${Number(stat.danger_duration || 0).toFixed(1)}s<br>
+                            最近告警：${escapeHtml(stat.last_alert || "-")}
+                        </div>
+                        <div class="zone-tools">
+                            <button type="button" class="secondary" onclick="toggleZone(${zone.id})">${zone.enabled ? "禁用" : "启用"}</button>
+                            <button type="button" class="secondary" onclick="toggleEditor(${zone.id})">编辑</button>
+                            <button type="button" class="warn" onclick="deleteZone(${zone.id})">删除</button>
+                        </div>
+                    </div>
+
+                    <div class="editor" id="editor-${zone.id}">
+                        <div class="field">
+                            <label>ID</label>
+                            <input type="number" value="${escapeHtml(zone.id)}" oninput="updateZoneField(${zone.id}, 'id', this.value)">
+                        </div>
+                        <div class="field">
+                            <label>名称</label>
+                            <input type="text" value="${escapeHtml(zone.name)}" oninput="updateZoneField(${zone.id}, 'name', this.value)">
+                        </div>
+                        <div class="field">
+                            <label>风险等级</label>
+                            <select onchange="updateZoneField(${zone.id}, 'risk_level', this.value)">
+                                <option value="high" ${zone.risk_level === "high" ? "selected" : ""}>high</option>
+                                <option value="medium" ${zone.risk_level === "medium" ? "selected" : ""}>medium</option>
+                                <option value="low" ${zone.risk_level === "low" ? "selected" : ""}>low</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>是否启用</label>
+                            <select onchange="updateZoneField(${zone.id}, 'enabled', this.value === 'true')">
+                                <option value="true" ${zone.enabled ? "selected" : ""}>true</option>
+                                <option value="false" ${!zone.enabled ? "selected" : ""}>false</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>要求安全帽</label>
+                            <select onchange="updateZoneField(${zone.id}, 'require_helmet', this.value === 'true')">
+                                <option value="true" ${zone.require_helmet ? "selected" : ""}>true</option>
+                                <option value="false" ${!zone.require_helmet ? "selected" : ""}>false</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>要求反光衣</label>
+                            <select onchange="updateZoneField(${zone.id}, 'require_vest', this.value === 'true')">
+                                <option value="true" ${zone.require_vest ? "selected" : ""}>true</option>
+                                <option value="false" ${!zone.require_vest ? "selected" : ""}>false</option>
+                            </select>
+                        </div>
+                        <div class="field" style="grid-column: 1 / -1;">
+                            <label>坐标（x1,y1,x2,y2）</label>
+                            <textarea oninput="updateZoneField(${zone.id}, 'zone', this.value)">${escapeHtml((zone.zone || []).join(","))}</textarea>
+                        </div>
+                        <div class="editor-actions">
+                            <button type="button" class="secondary" onclick="startZoneSelect(${zone.id})">视频框选</button>
+                            <button type="button" class="secondary" onclick="cancelZoneSelect()">取消框选</button>
+                            <button type="button" class="secondary" onclick="toggleEditor(${zone.id})">收起</button>
+                        </div>
+                        <div class="select-tip">点“视频框选”后，在上方视频里按住鼠标拖拽即可更新该区域坐标。</div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    async function saveAllZones() {
+        try {
+            const payload = {
+                danger_zones: dangerZones.map(z => ({
+                    id: Number(z.id),
+                    name: String(z.name || "").trim() || `危险区${z.id}`,
+                    zone: Array.isArray(z.zone) ? z.zone.map(v => Number(v || 0)) : [100, 100, 500, 400],
+                    risk_level: ["high", "medium", "low"].includes(String(z.risk_level || "").toLowerCase())
+                        ? String(z.risk_level).toLowerCase()
+                        : "high",
+                    enabled: !!z.enabled,
+                    require_helmet: !!z.require_helmet,
+                    require_vest: !!z.require_vest
+                }))
+            };
+
+            const res = await fetch("/api/danger_zones", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                alert((data && data.msg) || "保存失败");
+                return;
+            }
+
+            applyServerZones(data.danger_zones || [], true);
+            alert("危险区域列表已保存");
+        } catch (e) {
+            console.error(e);
+            alert("保存失败，请查看控制台");
+        }
+    }
+
+    function formatAiStatus(status) {
+        const s = String(status || "").trim();
+        const map = {
+            queued: "排队中",
+            generating: "生成中",
+            done: "已完成",
+            skipped: "已跳过",
+            skipped_busy: "队列繁忙，已跳过",
+            skipped_cooldown: "冷却中，已跳过",
+            error: "生成失败"
+        };
+        return map[s] || s || "未触发";
+    }
+
+    function renderAiPanel(logs) {
+        if (!Array.isArray(logs) || logs.length === 0) {
+            aiPanelStatusEl.textContent = "等待触发";
+            aiPanelMetaEl.textContent = "尚无可展示的 LLM 分析结果";
+            aiPanelTextEl.textContent = "触发 auto_capture 后，这里会显示面向工作人员和安全员的建议。";
+            aiPanelSourceEl.textContent = "-";
+            return;
+        }
+
+        let target = null;
+        for (let i = 0; i < logs.length; i++) {
+            const log = logs[i];
+            if (!log) continue;
+            if (log.ai_explanation || log.ai_status) {
+                target = log;
+                break;
+            }
+        }
+
+        if (!target) {
+            aiPanelStatusEl.textContent = "等待触发";
+            aiPanelMetaEl.textContent = "尚无可展示的 LLM 分析结果";
+            aiPanelTextEl.textContent = "触发 auto_capture 后，这里会显示面向工作人员和安全员的建议。";
+            aiPanelSourceEl.textContent = "-";
+            return;
+        }
+
+        const statusText = formatAiStatus(target.ai_status);
+
+        aiPanelStatusEl.textContent = `LLM状态：${statusText}`;
+        aiPanelMetaEl.textContent = `${target.time || "--"} · ${target.zone_name || "-"} · ${target.type || "event"}`;
+
+        if (target.ai_status === "done" && target.ai_explanation) {
+            aiPanelTextEl.textContent = target.ai_explanation;
+        } else if (target.ai_status === "generating") {
+            aiPanelTextEl.textContent = "LLM 正在生成现场建议，请稍候...";
+        } else if (target.ai_status === "queued") {
+            aiPanelTextEl.textContent = "事件已进入 LLM 队列，等待生成建议...";
+        } else if (target.ai_status === "error") {
+            aiPanelTextEl.textContent = target.ai_explanation || "LLM 生成失败。";
+        } else if (target.ai_status && target.ai_status.startsWith("skipped")) {
+            aiPanelTextEl.textContent = "本次事件未进入详细分析流程。";
+        } else {
+            aiPanelTextEl.textContent = "当前暂无可展示的分析结果。";
+        }
+
+        const lines = [];
+        if (target.message) lines.push(`事件：${target.message}`);
+        if (target.risk_level) lines.push(`风险等级：${target.risk_level}`);
+        if (target.danger_duration !== undefined) lines.push(`危险持续：${target.danger_duration}s`);
+        if (target.violation_person_count !== undefined) lines.push(`PPE违规人数：${target.violation_person_count}`);
+        if (target.missing_helmet_count !== undefined) lines.push(`未戴安全帽：${target.missing_helmet_count}`);
+        if (target.missing_vest_count !== undefined) lines.push(`未穿反光衣：${target.missing_vest_count}`);
+
+        aiPanelSourceEl.textContent = lines.length ? lines.join("\n") : "-";
+    }
+
+    function renderLogs(logs) {
+        if (!Array.isArray(logs) || logs.length === 0) {
+            logList.innerHTML = `<div class="empty">暂无事件日志</div>`;
+            return;
+        }
+
+        logList.innerHTML = logs.map(log => {
+            const extraLines = [];
+
+            if (log.zone_name) extraLines.push(`区域：${log.zone_name}`);
+            if (log.risk_level) extraLines.push(`等级：${log.risk_level}`);
+            if (log.violation_person_count !== undefined) extraLines.push(`PPE违规：${log.violation_person_count}`);
+            if (log.missing_helmet_count !== undefined) extraLines.push(`未戴安全帽：${log.missing_helmet_count}`);
+            if (log.missing_vest_count !== undefined) extraLines.push(`未穿反光衣：${log.missing_vest_count}`);
+
+            if (Array.isArray(log.zone_stats) && log.zone_stats.length > 0) {
+                const brief = log.zone_stats
+                    .filter(z => z.active || (z.danger_person_count || 0) > 0)
+                    .map(z =>
+                        `${z.name}: 危险 ${z.danger_person_count || 0}, PPE违规 ${z.violation_person_count || 0}, 缺帽 ${z.missing_helmet_count || 0}, 缺衣 ${z.missing_vest_count || 0}`
+                    )
+                    .join("\n");
+                if (brief) extraLines.push(brief);
+            }
+
+            if (log.danger_duration !== undefined) {
+                const v = Number(log.danger_duration);
+                extraLines.push(`危险持续：${Number.isFinite(v) ? v.toFixed(1) : log.danger_duration}s`);
+            }
+
+            const hasAiStatus = log.ai_status !== undefined && log.ai_status !== null && String(log.ai_status).trim() !== "";
+
+            return `
+                <div class="log-item">
+                    <div class="log-head">
+                        <div class="log-type">${escapeHtml(log.type || "event")}</div>
+                        <div class="log-time">${escapeHtml(log.time || "--")}</div>
+                    </div>
+                    <div class="log-body">
+                        <div class="log-message">${escapeHtml(log.message || "")}</div>
+                        ${extraLines.length ? `<div class="log-extra">${escapeHtml(extraLines.join("\n"))}</div>` : ""}
+                        ${hasAiStatus ? `<div class="log-ai-status">${escapeHtml("LLM状态：" + formatAiStatus(log.ai_status))}</div>` : ""}
+                        ${log.image ? `<img class="log-image" src="data:image/jpeg;base64,${log.image}" alt="抓拍图片">` : ""}
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    async function fetchLogs() {
+        try {
+            const res = await fetch("/api/logs");
+            if (!res.ok) return;
+            const data = await res.json();
+            renderLogs(data);
+            renderAiPanel(data);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function getRiskInfo(data) {
+        const activeZones = Array.isArray(data.zone_stats) ? data.zone_stats.filter(z => z.active) : [];
+        const topZone = data.top_risk_zone_name || "-";
+
+        if (!data.danger) {
+            return {
+                title: "SAFE",
+                text: "当前未检测到危险事件，系统运行正常。"
+            };
+        }
+
+        if (activeZones.length > 1) {
+            return {
+                title: "CRITICAL",
+                text: `当前有 ${activeZones.length} 个区域同时处于危险状态，主风险区为 ${topZone}。`
+            };
+        }
+
+        const z = activeZones[0] || {};
+        const reasons = [];
+        if ((z.missing_helmet_count || 0) > 0) reasons.push("未戴安全帽");
+        if ((z.missing_vest_count || 0) > 0) reasons.push("未穿反光衣");
+
+        const reasonText = reasons.length ? reasons.join("、") : "区域闯入";
+        return {
+            title: "ALERT",
+            text:
+                `主风险区：${topZone}；原因：${reasonText}；危险人数：${z.danger_person_count ?? 0}；持续时长：${Number(z.danger_duration || 0).toFixed(1)} 秒。`
+        };
+    }
+
+    function renderLatestFrame() {
+        if (renderingFrame || !pendingFrameUrl || !img) return;
+        renderingFrame = true;
+        const nextUrl = pendingFrameUrl;
+        pendingFrameUrl = null;
+
+        img.onload = () => {
+            if (currentObjectUrl && currentObjectUrl !== nextUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+            }
+            currentObjectUrl = nextUrl;
+            renderingFrame = false;
+            syncCanvasSize();
+            drawZoneOverlay();
+            if (pendingFrameUrl) requestAnimationFrame(renderLatestFrame);
+        };
+
+        img.onerror = () => {
+            try { URL.revokeObjectURL(nextUrl); } catch (e) {}
+            renderingFrame = false;
+            if (pendingFrameUrl) requestAnimationFrame(renderLatestFrame);
+        };
+
+        img.src = nextUrl;
+    }
+
+    function connectFrameWs() {
+        const protocol = location.protocol === "https:" ? "wss" : "ws";
+        frameWs = new WebSocket(`${protocol}://${location.host}/ws_frame`);
+        frameWs.binaryType = "blob";
+
+        frameWs.onopen = () => {
+            setConnectionState("视频流已连接", "#22c55e", "rgba(34, 197, 94, 0.20)");
+        };
+
+        frameWs.onmessage = (event) => {
+            if (!event.data) return;
+            const blobUrl = URL.createObjectURL(event.data);
+            if (pendingFrameUrl) {
+                try { URL.revokeObjectURL(pendingFrameUrl); } catch (e) {}
+            }
+            pendingFrameUrl = blobUrl;
+            if (!renderingFrame) requestAnimationFrame(renderLatestFrame);
+        };
+
+        frameWs.onclose = () => {
+            setConnectionState("视频流断开，正在重连...", "#f59e0b", "rgba(245, 158, 11, 0.22)");
+            setTimeout(connectFrameWs, 500);
+        };
+
+        frameWs.onerror = () => {
+            setConnectionState("视频流连接异常", "#ef4444", "rgba(239, 68, 68, 0.22)");
+        };
+    }
+
+    function connectMetaWs() {
+        const protocol = location.protocol === "https:" ? "wss" : "ws";
+        metaWs = new WebSocket(`${protocol}://${location.host}/ws_meta`);
+
+        metaWs.onopen = () => {
+            systemHealthEl.textContent = "正常";
+        };
+
+        metaWs.onmessage = (event) => {
+            let data = {};
+            try {
+                data = JSON.parse(event.data);
+            } catch (e) {
+                return;
+            }
+
+            latestMeta = data;
+
+            if (Array.isArray(data.danger_zones)) {
+                applyServerZones(data.danger_zones || [], false);
+            }
+
+            const risk = getRiskInfo(data);
+            riskTitleEl.textContent = risk.title;
+            riskTextEl.textContent = risk.text;
+            setRiskBadge(data);
+
+            fpsValueEl.innerText = fmtValue(Number(data.fps || 0).toFixed(1));
+            inferValueEl.innerText = fmtValue(Number(data.infer_ms || 0).toFixed(1), " ms");
+            dangerCountValueEl.innerText = fmtValue(data.danger_person_count);
+            ppeViolationValueEl.innerText = fmtValue(data.ppe_violation_count);
+            missingHelmetValueEl.innerText = fmtValue(data.missing_helmet_count);
+            missingVestValueEl.innerText = fmtValue(data.missing_vest_count);
+
+            currentPersonCountEl.innerText = fmtValue(data.current_person_count);
+            dangerPersonCountEl.innerText = fmtValue(data.danger_person_count);
+            alertTotalCountEl.innerText = fmtValue(data.danger_count);
+            lastAlertTimeEl.innerText = escapeHtml(data.last_alert || "--");
+            onlineCountEl.innerText = fmtValue(data.online);
+
+            const topZone = data.top_risk_zone_name || "-";
+            topRiskZoneNameEl.textContent = topZone;
+            if (placeholderTopRiskZoneEl) placeholderTopRiskZoneEl.textContent = topZone;
+
+            const now = new Date();
+            const label = `${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+
+            pushData(perfHistory.time, label);
+            pushData(perfHistory.fps, data.fps ?? null);
+            pushData(perfHistory.bpu, data.bpu_usage ?? null);
+            pushData(perfHistory.cpu, data.cpu_usage ?? null);
+            pushData(perfHistory.mem, data.mem_usage ?? null);
+            pushData(perfHistory.cpuTemp, data.cpu_temp ?? null);
+            pushData(perfHistory.power, data.power_w ?? null);
+
+            updatePerfChart();
+
+            metricBpuUsageEl.innerText = fmtValue(data.bpu_usage, "%");
+            metricCpuUsageEl.innerText = fmtValue(data.cpu_usage, "%");
+            metricMemUsageEl.innerText = fmtValue(data.mem_usage, "%");
+            metricPowerEl.innerText = fmtValue(data.power_w, " W");
+            metricCpuTempEl.innerText = fmtValue(data.cpu_temp, " °C");
+            metricBpuTempEl.innerText = fmtValue(data.bpu_temp, " °C");
+        };
+
+        metaWs.onclose = () => {
+            systemHealthEl.textContent = "重连中";
+            setTimeout(connectMetaWs, 500);
+        };
+
+        metaWs.onerror = () => {
+            systemHealthEl.textContent = "异常";
+        };
+    }
+
+    window.addEventListener("resize", () => {
+        perfChart.resize();
+        syncCanvasSize();
+        drawZoneOverlay();
+    });
+
+    if (img) {
+        img.addEventListener("load", () => {
+            syncCanvasSize();
+            drawZoneOverlay();
+        });
+    }
+
+    if (zoneCanvas) {
+        zoneCanvas.addEventListener("mousedown", (e) => {
+            if (selectingZoneId === null) return;
+            const [x, y] = canvasPointToStream(e.clientX, e.clientY);
+            dragStart = [x, y];
+            tempZone = [x, y, x, y];
+            isDragging = true;
+            drawZoneOverlay();
+        });
+
+        zoneCanvas.addEventListener("mousemove", (e) => {
+            if (selectingZoneId === null || !isDragging || !dragStart) return;
+            const [x, y] = canvasPointToStream(e.clientX, e.clientY);
+            tempZone = [
+                Math.min(dragStart[0], x),
+                Math.min(dragStart[1], y),
+                Math.max(dragStart[0], x),
+                Math.max(dragStart[1], y),
+            ];
+            drawZoneOverlay();
+        });
+    }
+
+    window.addEventListener("mouseup", () => {
+        if (selectingZoneId === null || !isDragging || !tempZone) return;
+
+        dangerZones = dangerZones.map(z => {
+            if (Number(z.id) === Number(selectingZoneId)) {
+                z.zone = tempZone.slice();
+            }
+            return z;
+        });
+
+        renderZones();
+        cancelZoneSelect();
+    });
+
+    connectFrameWs();
+    connectMetaWs();
+    reloadZones();
+    fetchLogs();
+    setInterval(fetchLogs, 1000);
+</script>
+</body>
+</html>
