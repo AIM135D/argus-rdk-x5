@@ -33,10 +33,11 @@ Strings and metadata confirm the expected three classes and RDK model shape.
 
 ## Publication status
 
-Not published. The artifacts contain embedded training/build paths, and the
-training dataset's redistribution rights are not documented. This decision
-does not imply the artifacts are malicious or invalid; it prevents accidental
-disclosure and unlicensed redistribution.
+Published as normalized assets on the GitHub `v1.0.0` release after explicit
+authorization from the project owner. The artifacts remain excluded from Git
+history. They contain embedded training/build paths, so downstream users must
+still verify that their use complies with the applicable dataset, weight, and
+toolchain licenses.
 
 ## Limitations
 

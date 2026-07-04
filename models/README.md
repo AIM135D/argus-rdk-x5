@@ -29,18 +29,16 @@ hrt_model_exec model_info --model_file models/argus_ppe_dfl_640_rdkx5.bin
 hrt_model_exec perf --model_file models/argus_ppe_dfl_640_rdkx5.bin
 ```
 
-## 为什么公开 Release 不包含模型
+## Release 下载
 
-整理时找到一组 `.pt`、`.onnx` 和 Bayes-E `.bin`，接口与项目匹配。但这些文件
-包含训练或转换机器的绝对路径，训练数据的来源和模型再分发授权也无法从文件本身
-确认。因此本仓库只发布模型接口、摘要和转换方法，不发布二进制。
+经项目所有者明确授权，三份匹配项目接口的模型已作为
+[v1.0.0 Release](https://github.com/AIM135D/argus-rdk-x5/releases/tag/v1.0.0)
+附件发布：
 
-如果你拥有可公开模型，请先确认训练数据、权重和工具链许可，再按以下名称发布：
+- [`argus_ppe_dfl_640.pt`](https://github.com/AIM135D/argus-rdk-x5/releases/download/v1.0.0/argus_ppe_dfl_640.pt)
+- [`argus_ppe_dfl_640.onnx`](https://github.com/AIM135D/argus-rdk-x5/releases/download/v1.0.0/argus_ppe_dfl_640.onnx)
+- [`argus_ppe_dfl_640_rdkx5.bin`](https://github.com/AIM135D/argus-rdk-x5/releases/download/v1.0.0/argus_ppe_dfl_640_rdkx5.bin)
 
-```text
-argus_ppe_dfl_640.pt
-argus_ppe_dfl_640.onnx
-argus_ppe_dfl_640_rdkx5.bin
-```
-
-不要使用 Git LFS；模型应作为 GitHub Release 附件发布。
+这些文件仍不进入 Git 历史。模型包含训练或转换机器的绝对路径；使用者仍应自行
+确认训练数据、权重和工具链许可。大小与 SHA-256 见
+[`model_manifest.json`](model_manifest.json)。

@@ -85,7 +85,12 @@ hrt_model_exec perf --model_file your_model.bin
 
 ## 8. 当前模型发布决策
 
-本机发现的 `.pt`、`.onnx`、Bayes-E `.bin` 与该接口相符，但文件内嵌训练或
-转换机器的绝对路径，训练数据再分发授权也未能确认。为避免泄露环境信息或传播
-来源不明模型，公开 Release 不包含模型。文件摘要记录在
-`models/model_manifest.json`。
+经项目所有者明确授权，与该接口相符的 `.pt`、`.onnx` 和 Bayes-E `.bin` 已用
+规范名称上传到 `v1.0.0` Release。模型仍不进入 Git 历史：
+
+- `argus_ppe_dfl_640.pt`
+- `argus_ppe_dfl_640.onnx`
+- `argus_ppe_dfl_640_rdkx5.bin`
+
+文件包含训练或转换机器的绝对路径，使用者仍应自行确认适用许可。文件摘要和
+SHA-256 记录在 `models/model_manifest.json`。

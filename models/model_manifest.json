@@ -2,8 +2,10 @@
   "schema_version": 1,
   "selected_profile": "ppe_dfl_640_rdkx5",
   "release_policy": {
-    "publish_models": false,
-    "reason": "Embedded training/build paths and training-data redistribution rights could not be cleared."
+    "publish_models": true,
+    "release_tag": "v1.0.0",
+    "authorized_on": "2026-07-04",
+    "reason": "Explicit publication authorization was received from the project owner; artifacts remain excluded from Git history."
   },
   "interface": {
     "input_shape": [1, 3, 640, 640],
@@ -22,7 +24,8 @@
       "size_bytes": 6261098,
       "sha256": "9586e5bd787d04d37eded2a0bfb061b47aaca33b8e5c46c788d7249dfede07f9",
       "selected": true,
-      "published": false
+      "published": true,
+      "release_asset_url": "https://github.com/AIM135D/argus-rdk-x5/releases/download/v1.0.0/argus_ppe_dfl_640.pt"
     },
     {
       "discovered_name": "best.onnx",
@@ -30,7 +33,8 @@
       "size_bytes": 12066888,
       "sha256": "f2af2bf9ab9916e672df1269f32729518bf35933c2fad52c0e4275a83c7d7e3e",
       "selected": true,
-      "published": false
+      "published": true,
+      "release_asset_url": "https://github.com/AIM135D/argus-rdk-x5/releases/download/v1.0.0/argus_ppe_dfl_640.onnx"
     },
     {
       "discovered_name": "best_bayese_640x640_nv12.bin",
@@ -38,7 +42,8 @@
       "size_bytes": 3805882,
       "sha256": "e62b9e8570d9270374e2b7f6240581e91f54e32a7078690fbc8417bc9c929b4c",
       "selected": true,
-      "published": false
+      "published": true,
+      "release_asset_url": "https://github.com/AIM135D/argus-rdk-x5/releases/download/v1.0.0/argus_ppe_dfl_640_rdkx5.bin"
     }
   ]
 }

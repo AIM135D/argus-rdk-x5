@@ -108,7 +108,10 @@ DFL reg_max：16
 → PPE 与 person 关联
 ```
 
-模型文件不进入 Git 历史。当前发现的 `.pt`、`.onnx`、Bayes-E `.bin` 与代码接口匹配，但包含训练/构建机器绝对路径，训练数据的再分发授权也无法确认，因此未放入公开 Release。见 [模型说明](models/README.md)。
+模型文件不进入 Git 历史。经项目所有者明确授权，与代码接口匹配的 `.pt`、`.onnx`
+和 Bayes-E `.bin` 已用规范名称作为
+[v1.0.0 Release](https://github.com/AIM135D/argus-rdk-x5/releases/tag/v1.0.0)
+附件公开。文件名与校验值见 [模型说明](models/README.md)。
 
 ## 7. 快速开始
 

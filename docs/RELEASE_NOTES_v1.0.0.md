@@ -17,9 +17,16 @@ intervention prototype.
 
 ## Model assets
 
-No model files are attached. The discovered `.pt`, `.onnx`, and Bayes-E `.bin`
-match the documented interface, but contain embedded build/training paths and
-their training-data redistribution rights could not be confirmed. See
+With explicit authorization from the project owner, these normalized model
+files are attached to this release:
+
+- `argus_ppe_dfl_640.pt`;
+- `argus_ppe_dfl_640.onnx`;
+- `argus_ppe_dfl_640_rdkx5.bin`.
+
+They remain excluded from Git history. The artifacts contain embedded
+build/training paths; downstream users should verify applicable dataset,
+weight, and toolchain licenses. Sizes and SHA-256 checksums are recorded in
 `models/model_manifest.json`.
 
 ## Safety

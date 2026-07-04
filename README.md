@@ -82,10 +82,11 @@ default. Read [the Chinese guide](README_CN.md) and
 - outputs: six tensors, classification `[0,2,4]`, regression `[1,3,5]`;
 - post-processing: sigmoid, DFL softmax, `dist2bbox`, class-aware NMS.
 
-Model binaries are intentionally excluded from Git and from this release
-because the discovered files contain embedded build/training-machine paths and
-their dataset redistribution rights could not be verified. See
-[models/README.md](models/README.md).
+Model binaries remain excluded from Git history. With explicit authorization
+from the project owner, the normalized PyTorch, ONNX, and RDK X5 Bayes-E
+artifacts are available from the
+[v1.0.0 release](https://github.com/AIM135D/argus-rdk-x5/releases/tag/v1.0.0).
+See [models/README.md](models/README.md) for filenames and checksums.
 
 ## License
 

@@ -53,7 +53,8 @@ class RepositoryContractTests(unittest.TestCase):
         data = json.loads(
             (ROOT / "models/model_manifest.json").read_text(encoding="utf-8")
         )
-        self.assertFalse(data["release_policy"]["publish_models"])
+        self.assertTrue(data["release_policy"]["publish_models"])
+        self.assertEqual(data["release_policy"]["release_tag"], "v1.0.0")
         self.assertEqual(
             data["interface"]["classes"],
             ["person", "helmet", "reflective_vest"],
@@ -61,7 +62,10 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertEqual(data["interface"]["strides"], [8, 16, 32])
         self.assertEqual(data["interface"]["reg_max"], 16)
         self.assertEqual(data["interface"]["output_count"], 6)
-        self.assertTrue(all(not item["published"] for item in data["artifacts"]))
+        self.assertTrue(all(item["published"] for item in data["artifacts"]))
+        self.assertTrue(
+            all(item["release_asset_url"] for item in data["artifacts"])
+        )
 
 
 if __name__ == "__main__":
