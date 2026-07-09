@@ -1,0 +1,17 @@
+{
+  "name": "rdk-modelpilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RDK ModelPilot - Windows 一键 YOLO 到 RDK X5 ONNX / bayes-e INT8 .bin 转换与部署助手",
+  "scripts": {
+    "backend": "python backend/main.py",
+    "frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently \"npm run backend\" \"npm --prefix frontend run electron:dev\"",
+    "build": "npm --prefix frontend run build",
+    "package:win": "npm --prefix frontend run package:win",
+    "test:backend": "python -m compileall backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
