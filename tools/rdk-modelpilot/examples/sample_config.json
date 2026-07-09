@@ -1,0 +1,17 @@
+{
+  "project_dir": "D:\\RDK_ModelPilot",
+  "output_dir": "D:\\RDK_ModelPilot_Output",
+  "rdk_model_zoo_windows": "D:\\rdk_model_zoo-main",
+  "rdk_model_zoo_wsl": "/mnt/d/rdk_model_zoo-main",
+  "export_script_windows": "D:\\rdk_model_zoo-main\\samples\\vision\\ultralytics_yolo\\x86\\export_monkey_patch.py",
+  "export_script_wsl": "/mnt/d/rdk_model_zoo-main/samples/vision/ultralytics_yolo/x86/export_monkey_patch.py",
+  "mapper_windows": "D:\\rdk_model_zoo-main\\samples\\vision\\ultralytics_yolo\\x86\\mapper.py",
+  "mapper_wsl": "/mnt/d/rdk_model_zoo-main/samples/vision/ultralytics_yolo/x86/mapper.py",
+  "conda_env": "yolo",
+  "wsl_distro": "Ubuntu-22.04",
+  "docker_image": "openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8",
+  "install_mode": "AUTO",
+  "default_imgsz": 640,
+  "target": "RDK X5 bayes-e",
+  "runtime_input": "NV12"
+}

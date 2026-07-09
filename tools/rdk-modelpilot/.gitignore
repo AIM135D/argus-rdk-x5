@@ -1,0 +1,17 @@
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-electron/
+frontend/release/
+build/
+backend_dist/
+__pycache__/
+*.pyc
+.venv/
+logs/*.log
+logs/*_commands.log
+logs/*.md
+logs/*.json
+*.onnx
+*.bin
+*.pt

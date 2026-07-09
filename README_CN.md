@@ -1,6 +1,10 @@
-# ARGUS：RDK X5 + ESP32 边缘视觉主动安全干预原型
+# 嵌赛地瓜机器人RDK X5赛道仓库
 
-[English summary](README.md)
+基于RDKX5的自训练模型可视化主动安全干预系统与双模低载LLM推理
+
+## ARGUS：RDK X5 + ESP32 边缘视觉主动安全干预原型
+
+[English summary](README_EN.md)
 
 ARGUS 是面向 RDK X5 的固定广角视觉研究与工程原型。系统识别人员、安全帽和反光衣，结合危险区域、跨帧 PPE 状态、风险持续时间和目标运动趋势计算风险；多人同时出现时，由仲裁器选择当前最需要干预的目标，再通过执行状态机和串口协议驱动 ESP32。
 
@@ -113,6 +117,9 @@ DFL reg_max：16
 [v1.0.0 Release](https://github.com/AIM135D/argus-rdk-x5/releases/tag/v1.0.0)
 附件公开。文件名与校验值见 [模型说明](models/README.md)。
 
+深度学习训练过程、主动学习补样结果、3×3 图像到舵机映射示意和相关解释见
+[深度学习训练、主动学习与舵机映射说明](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md)。
+
 ## 7. 快速开始
 
 ### 7.1 准备配置
@@ -216,6 +223,9 @@ L,seq
 - 确认机械限位后，再依次启用 `hardware_enabled` 与 `servo_enabled`。
 
 见 [CALIBRATION.md](docs/CALIBRATION.md)。
+
+标定映射示意图和双线性插值说明见
+[TRAINING_ACTIVE_LEARNING_AND_MAPPING.md](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md)。
 
 ## 11. 配置覆盖
 

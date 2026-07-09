@@ -4,8 +4,10 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.cache/
 .venv/
 venv/
+env/
 
 # Local configuration and credentials
 .env
@@ -24,6 +26,8 @@ logs/
 log/
 cache/
 tmp/
+*.tmp
+*.bak
 captures/
 output/
 *.log
@@ -44,6 +48,11 @@ calibration_images/
 videos/
 video/
 screenshots/
+dist/
+build/
+out/
+*.rar
+*.7z
 *.mp4
 *.avi
 *.mov
@@ -51,6 +60,8 @@ screenshots/
 *.jpg
 *.jpeg
 *.png
+!docs/assets/
+!docs/assets/*.png
 
 # Editors and OS
 .DS_Store
