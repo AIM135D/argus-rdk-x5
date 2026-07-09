@@ -1,4 +1,6 @@
-# ARGUS for RDK X5
+# 嵌赛RDKX5赛道开源仓库
+
+## ARGUS for RDK X5
 
 [中文完整说明](README_CN.md)
 
@@ -87,6 +89,10 @@ from the project owner, the normalized PyTorch, ONNX, and RDK X5 Bayes-E
 artifacts are available from the
 [v1.0.0 release](https://github.com/AIM135D/argus-rdk-x5/releases/tag/v1.0.0).
 See [models/README.md](models/README.md) for filenames and checksums.
+
+Training snapshots, active-learning samples, and the 3×3 image-to-servo
+mapping schematic are documented in
+[docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md).
 
 ## License
 

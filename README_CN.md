@@ -1,4 +1,6 @@
-# ARGUS：RDK X5 + ESP32 边缘视觉主动安全干预原型
+# 嵌赛RDKX5赛道开源仓库
+
+## ARGUS：RDK X5 + ESP32 边缘视觉主动安全干预原型
 
 [English summary](README.md)
 
@@ -113,6 +115,9 @@ DFL reg_max：16
 [v1.0.0 Release](https://github.com/AIM135D/argus-rdk-x5/releases/tag/v1.0.0)
 附件公开。文件名与校验值见 [模型说明](models/README.md)。
 
+深度学习训练过程、主动学习补样结果、3×3 图像到舵机映射示意和相关解释见
+[深度学习训练、主动学习与舵机映射说明](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md)。
+
 ## 7. 快速开始
 
 ### 7.1 准备配置
@@ -216,6 +221,9 @@ L,seq
 - 确认机械限位后，再依次启用 `hardware_enabled` 与 `servo_enabled`。
 
 见 [CALIBRATION.md](docs/CALIBRATION.md)。
+
+标定映射示意图和双线性插值说明见
+[TRAINING_ACTIVE_LEARNING_AND_MAPPING.md](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md)。
 
 ## 11. 配置覆盖
 

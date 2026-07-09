@@ -51,6 +51,8 @@ screenshots/
 *.jpg
 *.jpeg
 *.png
+!docs/assets/
+!docs/assets/*.png
 
 # Editors and OS
 .DS_Store
