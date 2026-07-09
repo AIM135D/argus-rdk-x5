@@ -22,7 +22,8 @@ ARGUS 是面向 RDK X5 的固定广角视觉研究与工程原型。系统识别
 - RDK X5 到 ESP32 的 `A / T / @T / C / L` 串口协议；
 - 双舵机与蜂鸣器控制，协议保留灯光字段；
 - FastAPI、WebSocket 和浏览器仪表板；
-- 在线网络访问模式与离线本地预览模式。
+- 在线网络访问模式与离线本地预览模式；
+- 配套 RDK ModelPilot Windows 工具，用于自训练模型转换、检查和部署报告生成。
 
 ## 2. 为什么不是简单“检测框跟随舵机”
 
@@ -120,9 +121,60 @@ DFL reg_max：16
 深度学习训练过程、主动学习补样结果、3×3 图像到舵机映射示意和相关解释见
 [深度学习训练、主动学习与舵机映射说明](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md)。
 
-## 7. 快速开始
+## 7. RDK ModelPilot 配套工具与软件下载
 
-### 7.1 准备配置
+RDK ModelPilot 是本作品配套的 Windows 端模型部署工具，源码已经合并到主仓库：
+
+```text
+tools/rdk-modelpilot/
+```
+
+它不替代 RDK Studio，也不做板卡烧录、通用 IDE、训练平台或数据标注。它主要解决自训练 YOLO 模型迁移到 RDK X5 时最容易出错的工程步骤：
+
+- 检测 Windows / WSL / Conda / Docker / OpenExplorer / `rdk_model_zoo` 环境；
+- 生成依赖安装和修复脚本；
+- 拖入 `.pt` 模型、`data.yaml` 和校准图片文件夹；
+- 调用 D-Robotics `rdk_model_zoo` 官方 `export_monkey_patch.py` 导出 ONNX；
+- 检查 ONNX 是否符合 RDK X5 YOLO DFL 六输出结构；
+- 通过 OpenExplorer Docker、`hb_mapper` 或 `mapper.py` 生成 Bayes-E INT8 `.bin`；
+- 自动生成 `deploy_config.py`、`deploy_report.md` 和错误诊断信息。
+
+Windows 安装器和便携版下载地址：
+
+```text
+https://github.com/AIM135D/rdk-modelpilot/releases/tag/v0.1.0
+```
+
+常用下载文件：
+
+- `RDK.ModelPilot.Setup.0.1.0.exe`：Windows 安装器；
+- `RDK-ModelPilot-Windows-v0.1.0.zip`：便携完整目录，解压后运行 `RDK ModelPilot.exe`。
+
+如果只想查看源码或二次开发，可以进入：
+
+```bash
+cd tools/rdk-modelpilot
+```
+
+后端启动方式：
+
+```powershell
+python -m pip install -r backend\requirements.txt
+python backend\main.py
+```
+
+前端启动方式：
+
+```powershell
+npm --prefix frontend install
+npm --prefix frontend run electron:dev
+```
+
+更完整的工具说明见 [tools/rdk-modelpilot/README.md](tools/rdk-modelpilot/README.md) 和 [modelpilot_integration.md](docs/modelpilot_integration.md)。
+
+## 8. 快速开始
+
+### 8.1 准备配置
 
 ```bash
 cp configs/runtime.example.yaml configs/runtime.yaml
@@ -142,7 +194,7 @@ host: 127.0.0.1
 port: 8000
 ```
 
-### 7.2 放置模型
+### 8.2 放置模型
 
 将兼容的 RDK X5 Bayes-E 模型放置为：
 
@@ -158,7 +210,7 @@ export ARGUS_MODEL_PATH=/path/to/compatible_model.bin
 
 缺少模型时程序会给出明确路径和 `models/README.md` 指引，不会静默忽略。
 
-### 7.3 安装与启动
+### 8.3 安装与启动
 
 在 RDK X5 上：
 
@@ -180,7 +232,7 @@ http://127.0.0.1:8000
 ./offline/start.sh
 ```
 
-## 8. RDK X5 部署
+## 9. RDK X5 部署
 
 板端需要 Ubuntu 22.04、Python 3.10、BPU Runtime、`hobot_dnn`/`pyeasy_dnn`、`hrt_model_exec`、摄像头驱动以及 Python 运行依赖。`hobot_dnn`、BPU Runtime 和 `hrt_model_exec` 通常由 RDK X5 系统镜像或 D-Robotics 工具提供，不应从普通 PyPI 环境替代安装。
 
@@ -193,7 +245,7 @@ hrt_model_exec perf --model_file models/argus_ppe_dfl_640_rdkx5.bin
 
 完整步骤见 [DEPLOYMENT_RDK_X5.md](docs/DEPLOYMENT_RDK_X5.md)。
 
-## 9. ESP32 烧录与串口协议
+## 10. ESP32 烧录与串口协议
 
 固件位置：
 
@@ -213,7 +265,7 @@ L,seq
 
 完整字段与示例见 [SERIAL_PROTOCOL.md](docs/SERIAL_PROTOCOL.md)。
 
-## 10. 危险区域与舵机标定
+## 11. 危险区域与舵机标定
 
 - 危险区域使用 640×360 显示坐标；
 - 每个区域配置风险等级、是否启用，以及 helmet/vest 要求；
@@ -227,7 +279,7 @@ L,seq
 标定映射示意图和双线性插值说明见
 [TRAINING_ACTIVE_LEARNING_AND_MAPPING.md](docs/TRAINING_ACTIVE_LEARNING_AND_MAPPING.md)。
 
-## 11. 配置覆盖
+## 12. 配置覆盖
 
 运行时读取 `configs/runtime.yaml`。也可设置 `ARGUS_CONFIG` 指向另一个 YAML；单个配置可用环境变量覆盖，例如：
 
@@ -239,7 +291,7 @@ ARGUS_ESP32_PORT=/dev/ttyUSB0 \
 ./online/start.sh
 ```
 
-## 12. 当前限制
+## 13. 当前限制
 
 - 需要真实 RDK X5 才能验证 BPU 推理；CI 不运行模型或硬件测试；
 - macOS 不保证能够执行 X5 INT8 编译；
@@ -250,7 +302,7 @@ ARGUS_ESP32_PORT=/dev/ttyUSB0 \
 - 风险分数和阈值属于研究参数，不是安全完整性等级认证结果；
 - LLM/ROS 桥接默认关闭，且不参与核心安全决策。
 
-## 13. 项目迭代
+## 14. 项目迭代
 
 - 初始阶段：单危险区、单帧人员检测和 Web 画面；
 - PPE 阶段：加入 helmet/reflective_vest 与 person 空间关联；
@@ -261,7 +313,7 @@ ARGUS_ESP32_PORT=/dev/ttyUSB0 \
 
 版本记录见 [CHANGELOG.md](CHANGELOG.md)。
 
-## 14. 开源协议与贡献
+## 15. 开源协议与贡献
 
 代码和文档使用 [MIT License](LICENSE)。模型、Ultralytics、D-Robotics 工具链、RDK 系统组件和前端第三方库分别遵循其自身许可。
 
