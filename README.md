@@ -2,7 +2,7 @@
 
 基于RDKX5的自训练模型可视化主动安全干预系统与双模低载LLM推理
 
-[English README](README_EN.md) | [历史中文说明](README_CN.md) | [ModelPilot 工具](tools/rdk-modelpilot/README.md)
+[English README](README_EN.md) | [历史中文说明](README_cn.md) | [ModelPilot 工具](tools/rdk-modelpilot/README.md)
 
 > 本项目是嵌入式芯片与系统设计竞赛地瓜机器人 RDK X5 赛道的竞赛原型。它用于展示边缘视觉、风险判断、执行端控制和模型部署流程，不替代经过认证的工业安全系统、急停装置、防护栏、安全联锁或人工监管。
 
@@ -123,7 +123,7 @@ flowchart LR
 ├── requirements.txt                 # RDK X5 Python 依赖
 ├── README.md                        # 中文总说明
 ├── README_EN.md                     # English README
-└── README_CN.md                     # 早期中文详细说明，保留作为补充
+└── README_cn.md                     # 早期中文详细说明，保留作为补充
 ```
 
 ## 文档索引

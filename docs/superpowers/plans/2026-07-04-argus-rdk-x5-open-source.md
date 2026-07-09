@@ -60,7 +60,7 @@
 
 **Files:**
 - Create: `README.md`
-- Create: `README_CN.md`
+- Create: `README_cn.md`
 - Create: `docs/DEPLOYMENT_RDK_X5.md`
 - Create: `docs/HARDWARE_AND_WIRING.md`
 - Create: `docs/SERIAL_PROTOCOL.md`

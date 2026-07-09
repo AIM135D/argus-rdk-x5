@@ -14,7 +14,7 @@ class RepositoryContractTests(unittest.TestCase):
     def test_required_public_files_exist(self):
         required = [
             "README.md",
-            "README_CN.md",
+            "README_cn.md",
             "LICENSE",
             "requirements.txt",
             "online/app.py",
