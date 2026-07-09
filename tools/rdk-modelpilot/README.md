@@ -6,6 +6,16 @@ RDK ModelPilot 是一个面向 RDK X5 用户的轻量部署助手：自动检测
 
 相比手动配置 Studio、WSL、Docker、OpenExplorer 和各种脚本参数，它更适合“我已经训练好了模型，现在只想尽快得到能上板的 `.bin`”这个场景。
 
+## Download
+
+Windows 安装器和便携版发布在独立软件仓库 Release 中：
+
+```text
+https://github.com/AIM135D/rdk-modelpilot/releases/tag/v0.1.0
+```
+
+本目录保留源码，方便比赛主仓库审查和二次开发。
+
 ## Highlights
 
 - One-click Windows workflow for RDK X5 model conversion

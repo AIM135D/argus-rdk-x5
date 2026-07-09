@@ -222,6 +222,14 @@ tools/rdk-modelpilot/
 
 It is a Windows-side helper for model deployment. It does not replace RDK Studio and is not a board flashing tool, generic IDE, training platform, or annotation tool. Its role is to make the self-trained YOLO to RDK X5 deployment path easier to reproduce:
 
+Windows installer and portable package:
+
+```text
+https://github.com/AIM135D/rdk-modelpilot/releases/tag/v0.1.0
+```
+
+The main contest repository keeps a source-code copy for review and reproducibility. The downloadable Windows builds remain published through the independent tool repository release page.
+
 ```text
 .pt
 → D-Robotics export_monkey_patch.py

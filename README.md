@@ -294,6 +294,14 @@ tools/rdk-modelpilot/
 
 它是配套 Windows 端模型部署工具，不替代 RDK Studio，也不负责板卡烧录、通用 IDE、训练平台或数据标注。它主要解决自训练 YOLO 模型迁移到 RDK X5 时的工程步骤：环境检查、官方导出脚本调用、ONNX 结构检查、OpenExplorer 量化编译和部署报告生成。
 
+Windows 安装包和便携版下载：
+
+```text
+https://github.com/AIM135D/rdk-modelpilot/releases/tag/v0.1.0
+```
+
+主仓库保留的是源码副本，便于比赛提交和代码审查；安装器仍通过独立软件仓库 Release 发布。
+
 启动后端：
 
 ```powershell
