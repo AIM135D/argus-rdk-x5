@@ -15,6 +15,15 @@ class Diagnosis:
 
 PATTERNS: list[tuple[list[str], Diagnosis]] = [
     (
+        ["1", "10", "检测类别"],
+        Diagnosis(
+            "CLASS_CONFIG_MISSING",
+            "没有从所选 YAML 中读取到有效类别。常见原因是误选了训练目录中的 args.yaml。",
+            "请选择数据集 data.yaml；程序也会尝试跟随 args.yaml 的 data 字段自动定位真正的数据集 YAML。",
+            "Get-Content D:\\path\\to\\data.yaml",
+        ),
+    ),
+    (
         ["docker", "is the docker daemon running"],
         Diagnosis(
             "DOCKER_NOT_RUNNING",

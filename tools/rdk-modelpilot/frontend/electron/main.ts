@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
@@ -8,6 +8,21 @@ let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcessWithoutNullStreams | null = null;
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFile);
+
+function registerIpcHandlers(): void {
+  ipcMain.handle("select-path", async (_event, options: { directory?: boolean; accept?: string }) => {
+    const directory = Boolean(options?.directory);
+    const extensions = String(options?.accept ?? "")
+      .split(",")
+      .map((item) => item.trim().replace(/^\./, ""))
+      .filter((item) => /^[a-z0-9]+$/i.test(item));
+    const result = await dialog.showOpenDialog({
+      properties: directory ? ["openDirectory"] : ["openFile"],
+      filters: !directory && extensions.length ? [{ name: "Supported files", extensions }] : undefined
+    });
+    return result.canceled ? "" : result.filePaths[0] ?? "";
+  });
+}
 
 function projectRoot(): string {
   if (app.isPackaged) {
@@ -25,12 +40,19 @@ function startBackend(): void {
   }
   const command = fs.existsSync(packagedBackend) ? packagedBackend : "python";
   const args = fs.existsSync(packagedBackend) ? [] : [backendMain];
+  const dataDir = path.join(app.getPath("userData"), "runtime");
+  fs.mkdirSync(dataDir, { recursive: true });
   backendProcess = spawn(command, args, {
     cwd: root,
     stdio: "pipe",
-    windowsHide: true
+    windowsHide: true,
+    env: {
+      ...process.env,
+      RDK_MODELPILOT_DATA_DIR: dataDir,
+      RDK_MODELPILOT_RESOURCE_DIR: root
+    }
   });
-  const logDir = path.join(root, "logs");
+  const logDir = path.join(dataDir, "logs");
   fs.mkdirSync(logDir, { recursive: true });
   const logFile = path.join(logDir, "electron_backend.log");
   const writeLog = (chunk: Buffer) => fs.appendFileSync(logFile, chunk);
@@ -48,7 +70,8 @@ async function createWindow(): Promise<void> {
     backgroundColor: "#f5f7fb",
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      preload: path.join(currentDir, "preload.cjs")
     }
   });
 
@@ -67,6 +90,7 @@ async function createWindow(): Promise<void> {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
+  registerIpcHandlers();
   startBackend();
   createWindow();
 });

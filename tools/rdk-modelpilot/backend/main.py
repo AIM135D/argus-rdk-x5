@@ -22,7 +22,7 @@ from onnx_checker import check_onnx_structure
 from path_utils import ensure_dir, safe_copy
 from quant_builder import build_int8_bin
 from report_generator import generate_deploy_report
-from utils import LOG_DIR, append_log, copy_inputs_to_task, create_task_dir, file_info, parse_data_yaml, read_text_tail, write_json
+from utils import LOG_DIR, append_log, copy_inputs_to_task, create_task_dir, file_info, parse_data_yaml, read_text_tail, resolve_dataset_image_dir, write_json
 
 
 app = FastAPI(title="RDK ModelPilot API", version="0.1.0")
@@ -60,7 +60,7 @@ class CalibrationRequest(BaseModel):
 class ConvertRequest(BaseModel):
     pt_path: str
     data_yaml_path: str = ""
-    calibration_dir: str
+    calibration_dir: str = ""
     output_dir: str = ""
     manual_classes: list[str] = Field(default_factory=list)
     imgsz: int | None = None
@@ -173,8 +173,9 @@ def run_conversion_pipeline(request: ConvertRequest, _job_id: str | None = None)
         safe_copy(env_report, task_dir / "reports" / "env_check_report.md")
     _set_step(task_dir, state, 0, "success", str(task_dir))
 
-    _set_step(task_dir, state, 1, "running", request.calibration_dir)
-    calibration = check_calibration_set(request.calibration_dir, task_dir)
+    calibration_dir = request.calibration_dir or resolve_dataset_image_dir(request.data_yaml_path)
+    _set_step(task_dir, state, 1, "running", calibration_dir or "data.yaml auto-discovery")
+    calibration = check_calibration_set(calibration_dir, task_dir)
     if calibration["summary"]["errors"]:
         _set_step(task_dir, state, 1, "failed", "; ".join(calibration["summary"]["errors"]))
         state["result"]["calibration"] = calibration
@@ -315,8 +316,10 @@ def inspect_model(request: ModelInspectRequest) -> dict[str, Any]:
         response["recommended_bin"] = str(Path(output_dir) / f"{path.stem}_timestamp" / "bin" / f"{path.stem}_bayese_{cfg['default_imgsz']}x{cfg['default_imgsz']}_nv12.bin")
     if request.data_yaml_path or request.manual_classes:
         response["data_yaml"] = parse_data_yaml(request.data_yaml_path, request.manual_classes or None)
-    if request.calibration_dir:
-        response["calibration_preview"] = check_calibration_set(request.calibration_dir)
+    calibration_dir = request.calibration_dir or resolve_dataset_image_dir(request.data_yaml_path)
+    if calibration_dir:
+        response["auto_calibration_dir"] = calibration_dir if not request.calibration_dir else ""
+        response["calibration_preview"] = check_calibration_set(calibration_dir)
     return response
 
 

@@ -8,5 +8,5 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["electron/main.ts"]
+  "include": ["electron/main.ts", "electron/preload.cts"]
 }

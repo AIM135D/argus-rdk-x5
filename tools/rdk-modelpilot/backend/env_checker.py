@@ -7,7 +7,7 @@ from typing import Any
 
 from config_manager import load_config
 from path_utils import contains_risky_characters
-from utils import LOG_DIR, platform_info, quick_command, status
+from utils import LOG_DIR, find_conda_executable, platform_info, quick_command, status
 
 
 PYTHON_PACKAGES = {
@@ -53,8 +53,8 @@ def _check_tool(command: list[str], display_name: str, timeout: int = 8) -> dict
     return status(display_name, result.ok, detail[0] if detail else f"exit={result.returncode}", data=result.to_dict())
 
 
-def _conda_envs() -> tuple[list[str], dict[str, Any]]:
-    result = quick_command(["conda", "env", "list", "--json"], timeout=12)
+def _conda_envs(conda_executable: str) -> tuple[list[str], dict[str, Any]]:
+    result = quick_command([conda_executable, "env", "list", "--json"], timeout=12)
     if result.ok:
         try:
             payload = json.loads(result.stdout)
@@ -62,7 +62,7 @@ def _conda_envs() -> tuple[list[str], dict[str, Any]]:
             return envs, result.to_dict()
         except json.JSONDecodeError:
             pass
-    result = quick_command(["conda", "env", "list"], timeout=12)
+    result = quick_command([conda_executable, "env", "list"], timeout=12)
     envs: list[str] = []
     for line in result.stdout.splitlines():
         line = line.strip()
@@ -72,13 +72,13 @@ def _conda_envs() -> tuple[list[str], dict[str, Any]]:
     return envs, result.to_dict()
 
 
-def _check_conda_package(env_name: str, pip_name: str, module_name: str) -> dict[str, Any]:
+def _check_conda_package(conda_executable: str, env_name: str, pip_name: str, module_name: str) -> dict[str, Any]:
     code = (
         "import importlib, sys; "
         f"m=importlib.import_module('{module_name}'); "
         "print(getattr(m, '__version__', 'installed'))"
     )
-    result = quick_command(["conda", "run", "-n", env_name, "python", "-c", code], timeout=25)
+    result = quick_command([conda_executable, "run", "-n", env_name, "python", "-c", code], timeout=25)
     detail = (result.stdout or result.stderr).strip().splitlines()
     return status(pip_name, result.ok, detail[-1] if detail else f"exit={result.returncode}", data=result.to_dict())
 
@@ -138,13 +138,17 @@ def check_environment(config: dict[str, Any] | None = None) -> dict[str, Any]:
     }
 
     conda: dict[str, Any] = {}
-    conda_cli = _check_tool(["conda", "--version"], "Conda / Anaconda", timeout=8)
+    conda_executable = find_conda_executable(cfg)
+    conda_cli = _check_tool([conda_executable, "--version"], "Conda / Anaconda", timeout=8) if conda_executable else status(
+        "Conda / Anaconda", False, "未自动发现 Conda/Anaconda。", level="warn"
+    )
     if conda_cli["ok"]:
+        conda_cli["detail"] = f"{conda_cli['detail']} ({conda_executable})"
         conda["cli"] = conda_cli
-        envs, env_result = _conda_envs()
+        envs, env_result = _conda_envs(conda_executable)
         conda["env_list"] = status("Conda 环境列表", True, ", ".join(envs) if envs else "未解析到环境", data=env_result)
         conda["env_exists"] = status(f"Conda 环境 {conda_env}", conda_env in envs, "已存在" if conda_env in envs else "未找到")
-        conda["python_version"] = _check_tool(["conda", "run", "-n", conda_env, "python", "--version"], f"{conda_env} Python")
+        conda["python_version"] = _check_tool([conda_executable, "run", "-n", conda_env, "python", "--version"], f"{conda_env} Python")
     else:
         conda["cli"] = status(
             "Conda / Anaconda",
@@ -160,7 +164,7 @@ def check_environment(config: dict[str, Any] | None = None) -> dict[str, Any]:
     python_packages = {}
     if conda.get("env_exists", {}).get("ok"):
         for pip_name, module_name in PYTHON_PACKAGES.items():
-            python_packages[pip_name] = _check_conda_package(conda_env, pip_name, module_name)
+            python_packages[pip_name] = _check_conda_package(conda_executable, conda_env, pip_name, module_name)
     else:
         for pip_name in PYTHON_PACKAGES:
             python_packages[pip_name] = status(pip_name, False, f"Conda 环境 {conda_env} 不存在，跳过包检查", level="warn")

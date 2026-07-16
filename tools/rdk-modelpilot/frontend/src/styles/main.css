@@ -520,6 +520,18 @@ h3 {
   word-break: break-word;
 }
 
+.inline-success {
+  border: 1px solid rgba(58, 145, 106, 0.28);
+  color: #24754f;
+  background: #f1fbf6;
+  border-radius: 8px;
+  padding: 9px 11px;
+  margin: 10px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .notice-list,
 .diagnosis-list {
   display: grid;

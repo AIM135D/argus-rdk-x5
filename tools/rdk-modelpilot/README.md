@@ -121,11 +121,10 @@ npm --prefix frontend run build
 Package Windows folder:
 
 ```powershell
-python -m PyInstaller backend\main.py --name rdk-modelpilot-backend --onefile --distpath backend_dist --workpath build\backend_pyinstaller --specpath build --clean --noconfirm
-npm --prefix frontend run build
-cd frontend
-npx electron-builder --win dir --x64
+npm run package:win
 ```
+
+The packaging script automatically discovers the configured Conda environment, bundles the required Conda runtime DLLs, builds the FastAPI backend, and creates a portable `RDK ModelPilot.exe`.
 
 ## Output Layout
 

@@ -45,7 +45,7 @@ export default function ConvertPage({ t, modelInput, onResult }: Props) {
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState("");
 
-  const canRun = Boolean(modelInput.pt_path && modelInput.calibration_dir && (modelInput.data_yaml_path || modelInput.manual_classes?.length));
+  const canRun = Boolean(modelInput.pt_path && (modelInput.data_yaml_path || (modelInput.calibration_dir && modelInput.manual_classes?.length)));
   const appLog = job?.result?.app_log || (status?.task_dir ? `${status.task_dir}\\logs\\app.log` : "");
   const diagnoses = useMemo(() => collectDiagnosis(job?.result), [job]);
 

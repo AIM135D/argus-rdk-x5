@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -8,7 +9,9 @@ from typing import Any
 from path_utils import ensure_dir, windows_to_wsl_path, wsl_to_windows_path
 
 
-BASE_DIR = Path.cwd() if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[1]
+BASE_DIR = Path(os.environ.get("RDK_MODELPILOT_DATA_DIR", "")).resolve() if os.environ.get("RDK_MODELPILOT_DATA_DIR") else (
+    Path.cwd() if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[1]
+)
 CONFIG_PATH = BASE_DIR / "config.json"
 
 DEFAULT_CONFIG: dict[str, Any] = {

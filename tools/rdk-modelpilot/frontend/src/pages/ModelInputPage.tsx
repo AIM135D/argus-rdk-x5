@@ -30,15 +30,38 @@ export default function ModelInputPage({ t, modelInput, onChange }: Props) {
   const setField = (key: string, value: string) => {
     const next = { ...modelInput, [key]: value };
     onChange(next);
+    setInspect(null);
+    setError("");
+  };
+
+  const updateClassText = (value: string) => {
+    const classes = parseClasses(value);
+    setClassText(value);
+    onChange({ ...modelInput, classText: value, manual_classes: classes });
+    setInspect(null);
+    setError("");
   };
 
   const runInspect = async () => {
     setError("");
-    const payload = { ...modelInput, manual_classes: manualClasses, classText };
+    const payload: Record<string, any> = { ...modelInput, manual_classes: manualClasses, classText };
     onChange(payload);
     try {
       const result = await inspectModel(payload);
       setInspect(result);
+      const yamlNames = result.data_yaml?.names ?? [];
+      const resolvedYamlPath = result.data_yaml?.resolved_data_yaml_path ?? "";
+      const nextPayload = {
+        ...payload,
+        data_yaml_path: resolvedYamlPath || payload.data_yaml_path,
+        calibration_dir: !modelInput.calibration_dir && result.auto_calibration_dir ? result.auto_calibration_dir : payload.calibration_dir,
+        manual_classes: yamlNames.length ? yamlNames : manualClasses,
+        classText: yamlNames.length ? yamlNames.map((name: string, index: number) => `${index} ${name}`).join("\n") : classText
+      };
+      if (yamlNames.length) {
+        setClassText(nextPayload.classText);
+      }
+      onChange(nextPayload);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -66,7 +89,7 @@ export default function ModelInputPage({ t, modelInput, onChange }: Props) {
 
         <label className="form-row stacked">
           <span>{t("model.manual")}</span>
-          <textarea value={classText} onChange={(event) => setClassText(event.target.value)} rows={6} />
+          <textarea value={classText} onChange={(event) => updateClassText(event.target.value)} rows={6} />
         </label>
       </section>
 
@@ -89,6 +112,10 @@ export default function ModelInputPage({ t, modelInput, onChange }: Props) {
           <div className="class-table">
             <h3>{t("model.classOrder")}</h3>
             <div>nc = {inspect.data_yaml.nc}</div>
+            {inspect.data_yaml.resolved_data_yaml_path ? (
+              <div className="inline-success">{t("model.yamlResolved")}: {inspect.data_yaml.resolved_data_yaml_path}</div>
+            ) : null}
+            {!inspect.data_yaml.names.length ? <div className="inline-error">{t("model.classMissing")}</div> : null}
             {inspect.data_yaml.validation?.errors?.length ? (
               <div className="inline-error">{inspect.data_yaml.validation.errors.join("; ")}</div>
             ) : null}
@@ -103,7 +130,13 @@ export default function ModelInputPage({ t, modelInput, onChange }: Props) {
         {inspect?.calibration_preview ? (
           <StatusCard
             title={t("model.calibPreview")}
-            detail={`${inspect.calibration_preview.total_images} images, ${inspect.calibration_preview.summary.warnings.length} warnings`}
+            detail={
+              inspect.calibration_preview.summary.errors.length
+                ? `${inspect.calibration_preview.total_images} ${t("model.calibUnavailable")}`
+                : inspect.calibration_preview.total_images < 20
+                  ? `${inspect.calibration_preview.total_images} ${t("model.calibTestAllowed")}`
+                  : `${inspect.calibration_preview.total_images} ${t("model.calibReady")}`
+            }
             level={inspect.calibration_preview.summary.errors.length ? "error" : inspect.calibration_preview.summary.warnings.length ? "warn" : "ok"}
           />
         ) : null}

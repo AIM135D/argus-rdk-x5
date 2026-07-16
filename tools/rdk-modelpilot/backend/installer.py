@@ -6,7 +6,7 @@ from typing import Any
 from config_manager import BASE_DIR, load_config
 from env_checker import PYTHON_PACKAGES, check_environment
 from path_utils import ensure_dir
-from utils import LOG_DIR, append_log, run_command
+from utils import LOG_DIR, append_log, find_conda_executable, run_command
 
 
 RDK_MODEL_ZOO_URL = "https://github.com/D-Robotics/rdk_model_zoo.git"
@@ -138,9 +138,10 @@ def install_environment() -> dict[str, Any]:
             }
         )
 
-    if before["conda"]["cli"]["ok"]:
+    conda_executable = find_conda_executable(cfg)
+    if before["conda"]["cli"]["ok"] and conda_executable:
         if not before["conda"]["env_exists"]["ok"]:
-            result = run_command(["conda", "create", "-n", cfg["conda_env"], "python=3.10", "-y"], install_log, timeout=1800)
+            result = run_command([conda_executable, "create", "-n", cfg["conda_env"], "python=3.10", "-y"], install_log, timeout=1800)
             actions.append({"name": f"创建 Conda 环境 {cfg['conda_env']}", "result": result.to_dict()})
         install_packages = [
             "ultralytics",
@@ -153,12 +154,17 @@ def install_environment() -> dict[str, Any]:
             "scipy",
             "pyyaml",
         ]
-        result = run_command(
-            ["conda", "run", "-n", cfg["conda_env"], "python", "-m", "pip", "install", "--upgrade", *install_packages],
-            install_log,
-            timeout=3600,
-        )
-        actions.append({"name": "安装/修复 Python 依赖", "result": result.to_dict()})
+        missing_packages = [
+            name for name in install_packages
+            if not before.get("python_packages", {}).get(name, {}).get("ok")
+        ]
+        if missing_packages:
+            result = run_command(
+                [conda_executable, "run", "-n", cfg["conda_env"], "python", "-m", "pip", "install", *missing_packages],
+                install_log,
+                timeout=3600,
+            )
+            actions.append({"name": "安装/修复缺失的 Python 依赖", "packages": missing_packages, "result": result.to_dict()})
     else:
         user_actions.append(
             {

@@ -3,13 +3,26 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8765/api";
 export type ApiResult = Record<string, any>;
 
 async function request<T = ApiResult>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers ?? {})
-    },
-    ...options
-  });
+  let response: Response | undefined;
+  let networkError: unknown;
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      response = await fetch(`${API_BASE}${path}`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers ?? {})
+        },
+        ...options
+      });
+      break;
+    } catch (error) {
+      networkError = error;
+      await new Promise((resolve) => window.setTimeout(resolve, 300));
+    }
+  }
+  if (!response) {
+    throw networkError instanceof Error ? networkError : new Error("RDK ModelPilot backend is unavailable");
+  }
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || `${response.status} ${response.statusText}`);

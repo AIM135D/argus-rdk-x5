@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import time
+import shlex
 from pathlib import Path
 from typing import Any
 
 from error_diagnoser import diagnose_file, diagnose_text
 from path_utils import safe_copy, windows_to_wsl_path
-from utils import append_log, run_command
+from utils import append_log, find_conda_executable, run_command
+
+
+def _export_model_argument(export_script: Path) -> str:
+    source = export_script.read_text(encoding="utf-8", errors="ignore")
+    return "--pt" if "add_argument('--pt'" in source or 'add_argument("--pt"' in source else "--model"
 
 
 def _find_exported_onnx(search_roots: list[Path], model_stem: str, started_at: float) -> Path | None:
@@ -55,24 +61,30 @@ def export_onnx_model(
         return {"ok": False, "error": message, "log_path": str(log_path), "diagnosis": diagnose_text(message)}
 
     started_at = time.time()
+    model_arg = _export_model_argument(export_script) if export_script.exists() else "--pt"
     if use_wsl:
         wsl_pt = windows_to_wsl_path(pt)
         command_text = (
             f"source ~/miniconda3/etc/profile.d/conda.sh && conda activate {config['conda_env']} && "
-            f"cd {Path(config['export_script_wsl']).parent.as_posix()} && "
-            f"python export_monkey_patch.py --model {wsl_pt} --imgsz {imgsz}"
+            f"cd {shlex.quote(Path(config['export_script_wsl']).parent.as_posix())} && "
+            f"python export_monkey_patch.py {model_arg} {shlex.quote(wsl_pt)} --imgsz {imgsz}"
         )
         result = run_command(["wsl", "-d", config["wsl_distro"], "bash", "-lc", command_text], log_path, timeout=3600)
         search_roots = [pt.parent, task / "input", task / "onnx"]
     else:
+        conda_executable = find_conda_executable(config)
+        if not conda_executable:
+            message = "未找到 Conda/Anaconda。请在设置中指定 conda_executable，或安装 Anaconda/Miniconda。"
+            append_log(log_path, message)
+            return {"ok": False, "error": message, "log_path": str(log_path), "diagnosis": diagnose_text(message)}
         command = [
-            "conda",
+            conda_executable,
             "run",
             "-n",
             config["conda_env"],
             "python",
             str(export_script),
-            "--model",
+            model_arg,
             str(pt),
             "--imgsz",
             str(imgsz),

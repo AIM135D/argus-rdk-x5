@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 
 from error_diagnoser import diagnose_file, diagnose_text
-from path_utils import safe_copy, windows_to_wsl_path
+from path_utils import safe_copy
 from utils import append_log, run_command
 
 
@@ -72,8 +72,8 @@ def _mapper_option(help_text: str, candidates: list[str]) -> str | None:
 
 def _build_mapper_command(help_text: str, task: Path, onnx_path: Path, config: dict[str, Any]) -> str | None:
     model_arg = _mapper_option(help_text, ["--onnx", "--model", "--model-path", "--model_path"])
-    calib_arg = _mapper_option(help_text, ["--calibration", "--calib", "--cal-data-dir", "--cal_data_dir", "--calibration-dir"])
-    output_arg = _mapper_option(help_text, ["--output", "--output-dir", "--output_dir", "--save-dir"])
+    calib_arg = _mapper_option(help_text, ["--cal-images", "--calibration", "--calib", "--cal-data-dir", "--cal_data_dir", "--calibration-dir"])
+    output_arg = _mapper_option(help_text, ["--output-dir", "--output_dir", "--save-dir", "--output"])
     imgsz_arg = _mapper_option(help_text, ["--imgsz", "--input-size", "--input_size"])
     march_arg = _mapper_option(help_text, ["--march", "--target"])
     if not (model_arg and calib_arg and output_arg):
@@ -92,6 +92,8 @@ def _build_mapper_command(help_text: str, task: Path, onnx_path: Path, config: d
         parts.extend([imgsz_arg, str(config.get("default_imgsz", 640))])
     if march_arg:
         parts.extend([march_arg, "bayes-e"])
+    if "--ws" in help_text:
+        parts.extend(["--ws", "/workspace/task/.mapper_workspace"])
     return " ".join(shlex.quote(part) for part in parts)
 
 
@@ -123,42 +125,42 @@ def build_int8_bin(
         return {"ok": False, "error": message, "diagnosis": diagnose_text(message), "log_path": str(log_path)}
 
     quant_config = write_quant_config(onnx_file, calibration_dir, task, config)
-    task_wsl = windows_to_wsl_path(task)
-    rdk_wsl = config["rdk_model_zoo_wsl"]
+    task_mount = f"{task.resolve()}:/workspace/task"
+    rdk_mount = f"{Path(config['rdk_model_zoo_windows']).resolve()}:/workspace/rdk_model_zoo:ro"
     image = config["docker_image"]
     mapper_help_cmd = (
         "python3 /workspace/rdk_model_zoo/samples/vision/ultralytics_yolo/x86/mapper.py --help "
         "> /workspace/task/logs/mapper_help.txt 2>&1 || true"
     )
-    help_fetch = (
-        f"docker run --rm -v {shlex.quote(task_wsl)}:/workspace/task "
-        f"-v {shlex.quote(rdk_wsl)}:/workspace/rdk_model_zoo:ro "
-        f"{shlex.quote(image)} bash -lc {shlex.quote(mapper_help_cmd)}"
-    )
-    run_command(["wsl", "-d", config["wsl_distro"], "bash", "-lc", help_fetch], log_path, timeout=300)
+    docker_base = [
+        "docker", "run", "--rm",
+        "-v", task_mount,
+        "-v", rdk_mount,
+        image, "bash", "-lc",
+    ]
+    run_command([*docker_base, mapper_help_cmd], log_path, timeout=300)
     help_text = (task / "logs" / "mapper_help.txt").read_text(encoding="utf-8", errors="ignore") if (task / "logs" / "mapper_help.txt").exists() else ""
     mapper_command = _build_mapper_command(help_text, task, onnx_file, config)
+    checker_command = (
+        f"hb_mapper checker --model-type onnx --march bayes-e "
+        f"--model /workspace/task/onnx/{shlex.quote(onnx_file.name)} "
+        "> /workspace/task/logs/checker.log 2>&1"
+    )
 
     if mapper_command:
         inner = (
-            f"{mapper_command} > /workspace/task/logs/makertbin.log 2>&1; "
-            "cp /workspace/task/logs/makertbin.log /workspace/task/logs/checker.log || true"
+            f"set -e; {checker_command}; "
+            f"{mapper_command} > /workspace/task/logs/makertbin.log 2>&1"
         )
     else:
         append_log(log_path, "mapper.py 参数无法可靠推断，使用 hb_mapper checker/makertbin 标准封装。")
         inner = (
-            f"hb_mapper checker --model-type onnx --march bayes-e --proto /workspace/task/onnx/{shlex.quote(onnx_file.name)} "
-            "> /workspace/task/logs/checker.log 2>&1 && "
+            f"{checker_command} && "
             "hb_mapper makertbin --config /workspace/task/configs/quant_config.yaml --model-type onnx "
             "> /workspace/task/logs/makertbin.log 2>&1"
         )
 
-    docker_command = (
-        f"docker run --rm -v {shlex.quote(task_wsl)}:/workspace/task "
-        f"-v {shlex.quote(rdk_wsl)}:/workspace/rdk_model_zoo:ro "
-        f"{shlex.quote(image)} bash -lc {shlex.quote(inner)}"
-    )
-    result = run_command(["wsl", "-d", config["wsl_distro"], "bash", "-lc", docker_command], log_path, timeout=7200)
+    result = run_command([*docker_base, inner], log_path, timeout=7200)
 
     bin_file = _find_bin(task)
     target_bin = task / "bin" / f"{onnx_file.stem}_bayese_{config.get('default_imgsz', 640)}x{config.get('default_imgsz', 640)}_nv12.bin"

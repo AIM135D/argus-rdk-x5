@@ -8,7 +8,7 @@
     "frontend": "npm --prefix frontend run dev",
     "dev": "concurrently \"npm run backend\" \"npm --prefix frontend run electron:dev\"",
     "build": "npm --prefix frontend run build",
-    "package:win": "npm --prefix frontend run package:win",
+    "package:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build_windows.ps1",
     "test:backend": "python -m compileall backend"
   },
   "devDependencies": {

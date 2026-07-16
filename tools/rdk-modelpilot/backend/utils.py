@@ -17,7 +17,9 @@ import yaml
 from path_utils import ensure_dir, safe_copy
 
 
-BASE_DIR = Path.cwd() if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[1]
+BASE_DIR = Path(os.environ.get("RDK_MODELPILOT_DATA_DIR", "")).resolve() if os.environ.get("RDK_MODELPILOT_DATA_DIR") else (
+    Path.cwd() if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[1]
+)
 LOG_DIR = BASE_DIR / "logs"
 ensure_dir(LOG_DIR)
 
@@ -120,6 +122,32 @@ def command_exists(name: str) -> bool:
     return shutil.which(name) is not None
 
 
+def find_conda_executable(config: dict[str, Any] | None = None) -> str | None:
+    """Find Conda even when Anaconda did not add it to the Windows PATH."""
+    configured = str((config or {}).get("conda_executable", "")).strip()
+    candidates = [configured, os.environ.get("CONDA_EXE", ""), shutil.which("conda") or ""]
+
+    home = Path.home()
+    local_app_data = Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local"))
+    for root in [
+        home / "anaconda3",
+        home / "miniconda3",
+        Path("C:/ProgramData/anaconda3"),
+        local_app_data / "anaconda3",
+        local_app_data / "miniconda3",
+    ]:
+        candidates.append(str(root / "Scripts" / "conda.exe"))
+
+    for drive in ["C", "D", "E"]:
+        for name in ["ANACONDA", "Anaconda3", "anaconda3", "Miniconda3", "miniconda3"]:
+            candidates.append(str(Path(f"{drive}:/") / name / "Scripts" / "conda.exe"))
+
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file():
+            return str(Path(candidate).resolve())
+    return None
+
+
 def status(name: str, ok: bool, detail: str = "", level: str | None = None, data: Any = None) -> dict[str, Any]:
     if level is None:
         level = "ok" if ok else "error"
@@ -141,8 +169,24 @@ def read_yaml(path: str | Path) -> dict[str, Any]:
 
 
 def parse_data_yaml(path: str | Path | None, manual_classes: list[str] | None = None) -> dict[str, Any]:
+    fallback_names = [str(name).strip() for name in (manual_classes or []) if str(name).strip()]
     if path and Path(path).exists():
-        data = read_yaml(path)
+        selected_path = Path(path).resolve()
+        data = read_yaml(selected_path)
+        selected_raw = data
+        resolved_data_yaml_path = ""
+
+        # Ultralytics run folders contain args.yaml. It points to the real
+        # dataset YAML through the `data` key but has no nc/names of its own.
+        if not data.get("names") and isinstance(data.get("data"), str):
+            referenced = Path(str(data["data"]))
+            if not referenced.is_absolute():
+                referenced = (selected_path.parent / referenced).resolve()
+            if referenced.is_file() and referenced.resolve() != selected_path:
+                referenced_data = read_yaml(referenced)
+                if referenced_data.get("names"):
+                    data = referenced_data
+                    resolved_data_yaml_path = str(referenced.resolve())
         names = data.get("names", [])
         if isinstance(names, dict):
             ordered = [str(names[key]) for key in sorted(names, key=lambda item: int(item) if str(item).isdigit() else str(item))]
@@ -150,12 +194,62 @@ def parse_data_yaml(path: str | Path | None, manual_classes: list[str] | None = 
             ordered = [str(item) for item in names]
         else:
             ordered = []
-        nc = int(data.get("nc") or len(ordered))
+
+        # Some training YAML files omit names or leave nc at zero. Keep the
+        # explicitly entered class list usable instead of blocking conversion.
+        if not ordered and fallback_names:
+            ordered = fallback_names
+        try:
+            nc = int(data.get("nc")) if data.get("nc") is not None else len(ordered)
+        except (TypeError, ValueError):
+            nc = len(ordered)
+        if nc <= 0 and ordered:
+            nc = len(ordered)
         validation = validate_class_names(ordered, nc)
-        return {"path": str(path), "nc": nc, "names": ordered, "raw": data, "validation": validation}
-    names = manual_classes or ["person", "helmet", "reflective_vest"]
+        return {
+            "path": str(selected_path),
+            "resolved_data_yaml_path": resolved_data_yaml_path,
+            "nc": nc,
+            "names": ordered,
+            "raw": data,
+            "selected_raw": selected_raw if resolved_data_yaml_path else None,
+            "validation": validation,
+        }
+    names = fallback_names or ["person", "helmet", "reflective_vest"]
     validation = validate_class_names(names, len(names))
     return {"path": "", "nc": len(names), "names": names, "raw": {"nc": len(names), "names": names}, "validation": validation}
+
+
+def resolve_dataset_image_dir(data_yaml_path: str | Path | None) -> str:
+    """Resolve a usable calibration image folder from a YOLO data.yaml."""
+    if not data_yaml_path or not Path(data_yaml_path).is_file():
+        return ""
+    yaml_path = Path(data_yaml_path).resolve()
+    data = read_yaml(yaml_path)
+    if not any(data.get(key) for key in ["val", "train", "test"]) and isinstance(data.get("data"), str):
+        referenced = Path(str(data["data"]))
+        if not referenced.is_absolute():
+            referenced = (yaml_path.parent / referenced).resolve()
+        if referenced.is_file():
+            yaml_path = referenced.resolve()
+            data = read_yaml(yaml_path)
+    dataset_root_value = data.get("path", "")
+    dataset_root = Path(str(dataset_root_value)) if dataset_root_value else yaml_path.parent
+    if not dataset_root.is_absolute():
+        dataset_root = (yaml_path.parent / dataset_root).resolve()
+
+    for key in ["val", "train", "test"]:
+        value = data.get(key)
+        values = value if isinstance(value, list) else [value]
+        for item in values:
+            if not item:
+                continue
+            candidate = Path(str(item))
+            if not candidate.is_absolute():
+                candidate = dataset_root / candidate
+            if candidate.is_dir():
+                return str(candidate.resolve())
+    return ""
 
 
 def validate_class_names(names: list[str], nc: int | None = None) -> dict[str, Any]:
